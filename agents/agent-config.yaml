@@ -1,0 +1,22 @@
+# Agentic Workflow Configuration
+system:
+  name: "122CTRL-Orchestrator"
+  version: "1.0.0-prototype"
+  domain: "Agentic-Workflow-Automation"
+
+ai_model:
+  provider: "Z.ai"
+  model_name: "GLM-5.1-Flash" # High speed for real-time automation
+  temperature: 0.3            # Low temperature for logical, consistent steps
+  max_tokens: 2000
+  top_p: 0.9
+
+workflow_rules:
+  auto_observe: true          # Agent automatically checks data.json for changes
+  reasoning_step: true        # Forces agent to use "Chain of Thought"
+  validation_required: false  # Set to true for human-in-the-loop
+  retry_limit: 3              # If API fails, try again 3 times
+
+memory_settings:
+  persistence: "file-based"   # Using shared-data/data.json
+  context_window: "long"      # For long-horizon task planning

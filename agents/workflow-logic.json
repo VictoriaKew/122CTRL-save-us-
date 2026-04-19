@@ -1,0 +1,9 @@
+{
+  "agent_loop": {
+    "step_1": "Perception (Reading data.json state)",
+    "step_2": "Cognition (Z.ai analyzing the delta between 'Current' and 'Goal')",
+    "step_3": "Action (Generating the specific workflow steps)",
+    "step_4": "Feedback (Updating the JSON with the new progress status)"
+  },
+  "domain_constraints": "Long-horizon planning and recursive task breakdown."
+}

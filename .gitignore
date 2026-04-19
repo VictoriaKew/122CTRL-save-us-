@@ -1,0 +1,18 @@
+# Security
+.env
+
+# Java / Maven
+server/target/
+server/.mvn/
+server/mvnw
+server/mvnw.cmd
+*.class
+
+# Node / React
+client/node_modules/
+client/dist/
+client/.eslintcache
+
+# Miscellaneous
+.DS_Store
+.vscode/

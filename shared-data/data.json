@@ -1,0 +1,35 @@
+{
+  "project_metadata": {
+    "name": "UM Hackathon 2026",
+    "team": "122CTRL-SAVE-US-",
+    "domain": "AI Systems & Agentic Workflow Automation",
+    "status": "Development"
+  },
+  "agent_state": {
+    "current_workflow": "System Initialization",
+    "last_autonomous_action": "Linked GitHub Repository",
+    "memory_usage": "Low",
+    "active_brain": "Z.ai (GLM-5.1)"
+  },
+  "tasks": [
+    {
+      "id": 1,
+      "title": "API Handshake",
+      "assigned_to": "Z.ai Agent",
+      "status": "In Progress",
+      "priority": "High"
+    },
+    {
+      "id": 2,
+      "title": "UI Dashboard Generation",
+      "assigned_to": "v0.dev",
+      "status": "Pending",
+      "priority": "Medium"
+    }
+  ],
+  "automation_logs": [
+    "Log: System environment verified.",
+    "Log: React Frontend heartbeat detected.",
+    "Log: Java Spring Boot server active on Port 8080."
+  ]
+}
