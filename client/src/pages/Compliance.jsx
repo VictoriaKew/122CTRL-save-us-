@@ -1,40 +1,71 @@
 import { useState } from 'react';
-import { ShieldCheck, Copyright, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ShieldAlert, CheckCircle2 } from 'lucide-react';
 
 export default function Compliance() {
   const navigate = useNavigate();
-  const platforms = ['TikTok', 'Instagram Reels', 'YouTube Shorts'];
+  const [platforms, setPlatforms] = useState({ tiktok: true, instagram: false, youtube: false });
+
+  const togglePlatform = (key) => setPlatforms(prev => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <div className="pt-24 p-8 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold mb-10 text-center">Safety & Platforms</h2>
-      
-      <div className="bg-white border border-gray-100 shadow-xl rounded-[32px] overflow-hidden mb-8">
-        <div className="p-8 space-y-6">
-          <div className="flex items-center gap-4 text-emerald-600 bg-emerald-50 p-4 rounded-2xl">
-            <Copyright /> <span className="font-bold">Music Copyright: SAFE</span>
-          </div>
-          
-          <div className="space-y-4">
-            <p className="font-bold text-sm text-gray-400 uppercase tracking-widest">Select Platforms</p>
-            <div className="flex gap-4">
-              {platforms.map(p => (
-                <label key={p} className="flex items-center gap-2 bg-[#f5f5f7] px-4 py-2 rounded-xl cursor-pointer hover:bg-gray-200">
-                  <input type="checkbox" className="accent-blue-600" /> {p}
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-amber-50 p-6 border-t border-amber-100 flex gap-4">
-          <AlertCircle className="text-amber-600" />
-          <p className="text-amber-800 text-sm font-medium">Platform Alert: TikTok might flag "Giveaway" in captions. Buddy swapped it to "Gift" to be safe.</p>
+    <div className="pt-32 p-6 max-w-4xl mx-auto relative z-10 pb-32">
+      <header className="mb-12 text-center">
+        <h1 className="text-5xl font-bold tracking-tight">Safety & Compliance.</h1>
+        <p className="text-xl text-gray-500 mt-2">Buddy is checking platform rules and copyright.</p>
+      </header>
+
+      {/* Platform Selection */}
+      <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-8">
+        <h3 className="font-bold text-lg mb-4">1. Where are you posting?</h3>
+        <div className="flex gap-4">
+          {['tiktok', 'instagram', 'youtube'].map((platform) => (
+            <button 
+              key={platform}
+              onClick={() => togglePlatform(platform)}
+              className={`flex-1 py-3 rounded-xl font-bold uppercase tracking-wider text-sm border-2 transition-all ${
+                platforms[platform] ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-400 hover:border-gray-300'
+              }`}
+            >
+              {platform}
+            </button>
+          ))}
         </div>
       </div>
-      
-      <button onClick={() => navigate('/schedule')} className="w-full bg-black text-white py-5 rounded-full font-bold">Check Schedule →</button>
+
+      {/* Analysis Results */}
+      <div className="bg-[#f5f5f7] rounded-3xl p-8 mb-8">
+        <h3 className="font-bold text-lg mb-6">2. Buddy's Analysis</h3>
+        
+        <div className="space-y-4">
+          <div className="flex items-start gap-4 p-4 bg-white rounded-2xl">
+            <CheckCircle2 className="text-emerald-500 mt-1" />
+            <div>
+              <p className="font-bold">Copyright Audio Check</p>
+              <p className="text-sm text-gray-500">"Lofi Study Beats" is cleared for commercial use on all selected platforms.</p>
+            </div>
+          </div>
+
+          {platforms.tiktok && (
+            <div className="flex items-start gap-4 p-4 bg-yellow-50 rounded-2xl border border-yellow-200">
+              <ShieldAlert className="text-yellow-600 mt-1" />
+              <div>
+                <p className="font-bold text-yellow-800">TikTok Restriction Warning</p>
+                <p className="text-sm text-yellow-700">Buddy removed the phrase "link in bio" from the script to prevent algorithmic shadowbanning on TikTok.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button 
+          onClick={() => navigate('/schedule')}
+          className="bg-blue-600 text-white px-8 py-4 rounded-full font-bold hover:bg-blue-700"
+        >
+          Approve & Go to Schedule →
+        </button>
+      </div>
     </div>
   );
 }
