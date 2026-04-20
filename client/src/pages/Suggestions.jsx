@@ -1,140 +1,156 @@
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Zap, Music, Video, Download, Camera } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Music, Hash, FileText, Clapperboard, Download } from 'lucide-react';
 
 export default function Suggestions() {
-  const navigate = useNavigate();
   const location = useLocation();
   
-  // 1. SAFE DATA MERGING 
-  // Prevents the blank screen by using fallback data if the API hasn't finished loading
+  // 1. SAFE DATA MERGING (Fallback data if API is empty)
   const passedData = location.state?.strategyData || {};
   
-  const defaultStoryboard = [
-    { id: 1, shotType: "Wide", movement: "Static", action: "Establishing shot of the subject in a clean, professional environment.", dialogue: "(Background music fades in)", duration: "3s" },
-    { id: 2, shotType: "Close-up", movement: "Push In", action: "Subject looks directly at camera, confident expression.", dialogue: "\"Stop scrolling, I have a secret to share.\"", duration: "2s" },
-    { id: 3, shotType: "Screen Record", movement: "None", action: "Demonstration of the product or method being discussed.", dialogue: "\"Here is exactly how this works...\"", duration: "5s" },
-    { id: 4, shotType: "Medium", movement: "Pan Left", action: "Subject smiling, giving a call to action.", dialogue: "\"Save this for later!\"", duration: "3s" }
-  ];
-
   const aiData = {
-    hook: passedData.hook || "Stop scrolling. Here is the ultimate shortcut for your workflow.",
-    script: passedData.script || "Using the fast pacing from your latest video, we cut straight to the core value. No fluff.",
-    sonicDna: passedData.sonicDna || "Lofi Study Beats (Trending)",
-    trendReport: passedData.trendReport || "New trends emerging in the creator space. Post soon for high engagement.",
-    storyboard: passedData.storyboard || defaultStoryboard 
+    title: passedData.hook || "The Ultimate Workflow Hack for 2026",
+    song: passedData.sonicDna || "Trending: Lofi Study Beats / Acoustic Pop",
+    caption: passedData.script || "Stop scrolling! If you want to survive this semester, save this video. 🚀 #Workflow #ProductivityHacks #Tech",
+    storyboard: passedData.storyboard || [
+      { id: 1, scene: "Office / Desk", character: "Subject sitting", shooting: "Wide angle, static", editing: "Fade in", dialogue: "(Background music starts)", duration: "3s" },
+      { id: 2, scene: "Close up on face", character: "Subject looking at camera", shooting: "Push in close-up", editing: "Hard cut", dialogue: "\"Stop scrolling, I have a secret.\"", duration: "2s" },
+      { id: 3, scene: "Screen capture", character: "Mouse moving on screen", shooting: "Screen recording", editing: "Zoom into screen", dialogue: "\"Here is exactly how this works...\"", duration: "5s" },
+      { id: 4, scene: "Office / Desk", character: "Subject smiling", shooting: "Medium shot", editing: "Whip pan out", dialogue: "\"Save this for later!\"", duration: "3s" }
+    ]
   };
 
-  // 2. DOWNLOAD FUNCTION
-  const downloadStoryboard = () => {
-    const headers = ["Shot No.", "Shot Type", "Camera Movement", "Visual/Action", "Dialogue/Audio", "Duration"];
+  // 2. DOWNLOAD FUNCTION: ACTOR VERSION (Script & Dialogue Only)
+  const downloadActorScript = () => {
+    let scriptContent = `TITLE: ${aiData.title}\n\n--- ACTOR SCRIPT ---\n\n`;
+    aiData.storyboard.forEach(row => {
+      scriptContent += `SCENE ${row.id}: ${row.scene}\nACTION: ${row.character}\nDIALOGUE: ${row.dialogue}\n\n`;
+    });
+    
+    const blob = new Blob([scriptContent], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "Buddy_Actor_Script.txt";
+    link.click();
+  };
+
+  // 3. DOWNLOAD FUNCTION: DIRECTOR VERSION (Full Storyboard CSV)
+  const downloadDirectorStoryboard = () => {
+    const headers = ["Scene No.", "Location", "Character/Action", "Way of Shooting", "Way of Editing", "Dialogue", "Time"];
     const csvContent = [
       headers.join(","), 
       ...aiData.storyboard.map(row => 
-        [row.id, row.shotType, row.movement, `"${row.action}"`, `"${row.dialogue}"`, row.duration].join(",")
+        [row.id, `"${row.scene}"`, `"${row.character}"`, `"${row.shooting}"`, `"${row.editing}"`, `"${row.dialogue}"`, row.duration].join(",")
       )
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute("href", url);
-    link.setAttribute("download", "Buddy_Storyboard.csv");
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
+    link.href = URL.createObjectURL(blob);
+    link.download = "Buddy_Director_Storyboard.csv";
     link.click();
-    document.body.removeChild(link);
   };
 
   return (
-    <div className="pt-32 p-6 max-w-7xl mx-auto relative z-10 pb-32">
-      <header className="mb-12">
-        <h1 className="text-5xl font-bold tracking-tight">Buddy's Creative Lab.</h1>
-        <p className="text-xl text-gray-500 mt-2">Trend-aligned strategy for your next post.</p>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      className="p-8 max-w-7xl mx-auto"
+    >
+      <header className="mb-12 mt-6">
+        <h1 className="text-5xl font-bold tracking-tight text-[#1d1d1f] mb-2">Buddy's Creative Lab.</h1>
+        <p className="text-xl text-gray-500 font-light">Based on your 3 videos, here is the next move.</p>
       </header>
 
-      {/* TOP SECTION: Script & Metadata */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-        <div className="lg:col-span-8 bg-white rounded-[40px] p-10 shadow-sm border border-gray-100">
-           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-full text-xs font-bold mb-6">
-             <Zap size={14} /> AI GENERATED STRATEGY
-           </div>
-           <h2 className="text-3xl font-bold leading-tight mb-4">"{aiData.hook}"</h2>
-           <p className="text-lg text-gray-500 leading-relaxed italic mb-8">"{aiData.script}"</p>
-           <div className="flex gap-2">
-              <span className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-bold text-gray-600">#ViralContent</span>
-              <span className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-bold text-gray-600">#SocialStrategy</span>
-           </div>
+      {/* SECTION 1: SIDE-SCROLLING CARDS (Content Suggestion) */}
+      <h2 className="text-sm font-bold tracking-[0.2em] uppercase text-gray-400 mb-6 ml-2">Content Suggestion</h2>
+      
+      {/* This is the horizontal scrolling container. 
+        Hold shift to scroll horizontally on desktop, or swipe on trackpad/mobile!
+      */}
+      <div className="flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory hide-scrollbar">
+        
+        {/* Card 1: Title */}
+        <div className="min-w-[320px] md:min-w-[400px] bg-white/60 backdrop-blur-2xl border border-white shadow-lg rounded-[32px] p-8 snap-start shrink-0">
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-6">
+            <FileText size={24} />
+          </div>
+          <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">The Hook / Title</h3>
+          <p className="text-2xl font-bold text-[#1d1d1f] leading-snug">{aiData.title}</p>
         </div>
 
-        <div className="lg:col-span-4 space-y-6">
-           <div className="bg-[#f5f5f7] p-8 rounded-[32px]">
-              <Music className="text-blue-600 mb-4" />
-              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Trending Audio</h4>
-              <p className="text-xl font-bold">{aiData.sonicDna}</p>
-           </div>
-           <button 
-             onClick={() => navigate('/compliance')}
-             className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-colors"
-           >
-             Continue to Safety Check →
-           </button>
+        {/* Card 2: Song */}
+        <div className="min-w-[320px] md:min-w-[400px] bg-white/60 backdrop-blur-2xl border border-white shadow-lg rounded-[32px] p-8 snap-start shrink-0">
+          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 mb-6">
+            <Music size={24} />
+          </div>
+          <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Trending Audio</h3>
+          <p className="text-2xl font-bold text-[#1d1d1f] leading-snug">{aiData.song}</p>
         </div>
+
+        {/* Card 3: Caption & Hashtags */}
+        <div className="min-w-[320px] md:min-w-[400px] bg-white/60 backdrop-blur-2xl border border-white shadow-lg rounded-[32px] p-8 snap-start shrink-0">
+          <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-6">
+            <Hash size={24} />
+          </div>
+          <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Caption & Hashtags</h3>
+          <p className="text-lg font-medium text-gray-600 leading-relaxed">{aiData.caption}</p>
+        </div>
+
       </div>
 
-      {/* BOTTOM SECTION: Professional Storyboard Table */}
-      <div className="bg-white rounded-[40px] p-10 shadow-sm border border-gray-100 overflow-hidden">
-        <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-3 text-black">
-                <Video size={28} />
-                <h3 className="text-2xl font-bold">Director's Storyboard</h3>
-            </div>
-            
-            <button 
-              onClick={downloadStoryboard}
-              className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-black px-5 py-2.5 rounded-full font-bold text-sm transition-all"
-            >
-              <Download size={16} /> Download CSV
-            </button>
-        </div>
-
+      {/* SECTION 2: VISUALISATION STORYBOARD TABLE */}
+      <h2 className="text-sm font-bold tracking-[0.2em] uppercase text-gray-400 mb-6 ml-2 mt-8">Visualisation Storyboard</h2>
+      
+      <div className="bg-white/60 backdrop-blur-2xl border border-white shadow-xl rounded-[40px] p-8 overflow-hidden mb-8">
         <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
-                    <tr className="bg-black text-white text-sm uppercase tracking-wider">
-                        <th className="p-4 rounded-tl-2xl">Shot</th>
-                        <th className="p-4 text-center">Visual</th>
-                        <th className="p-4">Shot Type</th>
-                        <th className="p-4">Movement</th>
-                        <th className="p-4 w-1/3">Action</th>
-                        <th className="p-4">Audio</th>
-                        <th className="p-4 rounded-tr-2xl">Time</th>
+                    <tr className="border-b border-gray-200">
+                        <th className="p-4 text-xs font-black uppercase tracking-widest text-gray-400">Scene</th>
+                        <th className="p-4 text-xs font-black uppercase tracking-widest text-gray-400">Character/Action</th>
+                        <th className="p-4 text-xs font-black uppercase tracking-widest text-gray-400">Way of Shooting</th>
+                        <th className="p-4 text-xs font-black uppercase tracking-widest text-gray-400">Way of Editing</th>
+                        <th className="p-4 text-xs font-black uppercase tracking-widest text-gray-400 w-1/4">Dialogue</th>
                     </tr>
                 </thead>
-                <tbody className="text-gray-700 text-sm">
-                    {aiData.storyboard.map((row, index) => (
-                        <tr key={row.id} className={`border-b border-gray-100 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-[#fcfcfd]'}`}>
-                            <td className="p-4 font-black text-lg text-center">{row.id}</td>
-                            {/* NEW "MAGIC" CODE */}
-<td className="p-4 text-center">
-    <img 
-        src={`https://image.pollinations.ai/prompt/${encodeURIComponent(row.action + " simple pencil sketch storyboard style")}?width=160&height=120&nologo=true`} 
-        alt="Storyboard sketch"
-        className="w-20 h-14 object-cover rounded-md mx-auto shadow-sm border border-gray-200"
-        loading="lazy"
-    />
-</td>
-                            <td className="p-4 font-bold">{row.shotType}</td>
-                            <td className="p-4 font-bold text-blue-600">{row.movement}</td>
-                            <td className="p-4 leading-relaxed">{row.action}</td>
-                            <td className="p-4 italic text-gray-500">{row.dialogue}</td>
-                            <td className="p-4 font-bold text-center">{row.duration}</td>
+                <tbody className="text-sm text-[#1d1d1f]">
+                    {aiData.storyboard.map((row) => (
+                        <tr key={row.id} className="border-b border-gray-100 last:border-0 hover:bg-white/40 transition-colors">
+                            <td className="p-4 font-bold">
+                              <span className="bg-gray-100 px-2 py-1 rounded text-xs mr-2">{row.id}</span>
+                              {row.scene}
+                            </td>
+                            <td className="p-4 font-medium text-gray-600">{row.character}</td>
+                            <td className="p-4 font-medium text-blue-600">{row.shooting}</td>
+                            <td className="p-4 font-medium text-purple-600">{row.editing}</td>
+                            <td className="p-4 italic text-gray-500 leading-relaxed">"{row.dialogue}"</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
         </div>
       </div>
-    </div>
+
+      {/* SECTION 3: THE DUAL DOWNLOAD BUTTONS */}
+      <div className="flex flex-wrap items-center justify-end gap-4 mb-20">
+        <button 
+          onClick={downloadActorScript}
+          className="flex items-center gap-2 px-6 py-4 rounded-full font-bold text-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:scale-105 transition-all shadow-sm"
+        >
+          <FileText size={16} /> 
+          Script Only (Actor Ver.)
+        </button>
+        
+        <button 
+          onClick={downloadDirectorStoryboard}
+          className="flex items-center gap-2 px-6 py-4 rounded-full font-bold text-sm bg-black text-white hover:scale-105 transition-all shadow-xl"
+        >
+          <Download size={16} /> 
+          Full Storyboard (Director Ver.)
+        </button>
+      </div>
+
+    </motion.div>
   );
 }

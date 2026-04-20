@@ -1,151 +1,100 @@
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calendar, 
-  UserCircle, 
-  Lightbulb, 
-  ShieldCheck, 
-  CalendarCheck 
-} from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Settings, Bell, User, History, Wand2, ShieldCheck, CalendarClock, Home } from 'lucide-react';
 
-// Import your pages
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Main from './pages/Main';
 import Suggestions from './pages/Suggestions';
 import Compliance from './pages/Compliance';
 import Schedule from './pages/Schedule';
-import Login from './pages/Login';
 import Success from './pages/Success';
 
-// --- 1. VIBRANT BACKGROUND (The "Alive" Mesh) ---
-function BackgroundShapes() {
-  return (
-    <div className="fixed inset-0 overflow-hidden -z-10 bg-[#fbfbfd]">
-      {/* Stronger Blue Blob */}
-      <motion.div 
-        animate={{ 
-          x: [0, 120, 0], 
-          y: [0, 80, 0],
-          scale: [1, 1.3, 1] 
-        }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-40 -left-40 w-[800px] h-[800px] bg-blue-200/60 rounded-full blur-[110px]"
-      />
-      {/* Stronger Purple Blob */}
-      <motion.div 
-        animate={{ 
-          x: [0, -100, 0], 
-          y: [0, 150, 0],
-          scale: [1, 1.1, 1] 
-        }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/4 -right-40 w-[700px] h-[700px] bg-purple-200/50 rounded-full blur-[110px]"
-      />
-      {/* Teal Accent */}
-      <motion.div 
-        animate={{ opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 12, repeat: Infinity }}
-        className="absolute bottom-[-100px] left-1/4 w-[600px] h-[600px] bg-teal-100 rounded-full blur-[130px]"
-      />
-    </div>
-  );
-}
-
-// --- 2. THE FLOATING BOTTOM DOCK ---
-function BottomDock() {
+function DashboardLayout() {
+  const navigate = useNavigate();
   const location = useLocation();
-  const path = location.pathname;
 
-  const creationSteps = ['/suggestions', '/compliance', '/schedule'];
-  if (!creationSteps.includes(path)) return null;
-
-  const steps = [
-    { name: 'Suggest', path: '/suggestions', icon: <Lightbulb size={20} /> },
-    { name: 'Safety', path: '/compliance', icon: <ShieldCheck size={20} /> },
-    { name: 'Schedule', path: '/schedule', icon: <CalendarCheck size={20} /> },
+  const navItems = [
+    { path: '/app', label: 'Create', icon: <Wand2 size={18} /> },
+    { path: '/suggestions', label: 'Suggest', icon: <Home size={18} /> },
+    { path: '/compliance', label: 'Safety', icon: <ShieldCheck size={18} /> },
+    { path: '/schedule', label: 'Schedule', icon: <CalendarClock size={18} /> }
   ];
 
   return (
-    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[90]">
-      <div className="bg-white/70 backdrop-blur-2xl border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-full px-5 py-2.5 flex gap-6 items-center">
-        {steps.map((step) => {
-          const isActive = path === step.path;
-          return (
-            <Link
-              key={step.path}
-              to={step.path}
-              className={`relative flex items-center gap-2 px-6 py-2 rounded-full transition-all duration-500 group ${
-                isActive ? 'text-[#0066cc]' : 'text-gray-400 hover:text-black'
-              }`}
-            >
-              {isActive && (
-                <motion.div 
-                  layoutId="activeDockTab"
-                  className="absolute inset-0 bg-white rounded-full -z-10 shadow-sm"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              {step.icon}
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">{step.name}</span>
-            </Link>
-          );
-        })}
+    <div className="flex h-screen w-full relative overflow-hidden font-sans text-[#1d1d1f] bg-[#f8f9fb]">
+      
+      {/* --- THE APPLE CENTER MESH GRADIENT --- */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[1000px] max-h-[1000px] bg-gradient-to-tr from-purple-500 via-blue-400 to-indigo-400 rounded-full blur-[140px] opacity-25 pointer-events-none z-0"></div>
+
+      {/* PANEL 1: SIDE PANEL */}
+      <aside className="w-64 bg-white/80 backdrop-blur-2xl border-r border-white/80 hidden md:flex flex-col p-6 z-20 shadow-[10px_0_40px_-15px_rgba(0,0,0,0.05)]">
+        <h2 className="text-2xl font-bold tracking-tight mb-8">Buddy.</h2>
+        <div className="flex-1">
+          <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">History</h3>
+          <ul className="space-y-3">
+            <li className="text-sm font-medium text-gray-400 italic">No recent projects</li>
+          </ul>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col relative h-full z-10">
+        {/* PANEL 2: TOP PANEL */}
+        {/* PANEL 2: TOP PANEL (Now with higher opacity and a soft shadow) */}
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-white/80 flex items-center justify-end px-8 z-20 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.03)]">
+          {/* ... inside stays exactly the same ... */}
+          <div className="flex items-center gap-6 text-gray-600">
+            <button className="hover:text-black transition-colors"><Bell size={20} /></button>
+            <button className="hover:text-black transition-colors"><Settings size={20} /></button>
+            <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full text-white flex items-center justify-center shadow-md cursor-pointer">
+              <User size={20} />
+            </div>
+          </div>
+        </header>
+
+        {/* MAIN CONTENT AREA */}
+        <main className="flex-1 overflow-y-auto pb-32">
+          <Outlet />
+        </main>
+
+        {/* PANEL 3: BOTTOM NAVIGATION */}
+        <nav className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/70 backdrop-blur-3xl border border-white shadow-2xl rounded-full px-2 py-2 flex gap-2 z-50">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${
+                  isActive ? 'bg-black text-white shadow-lg scale-105' : 'text-gray-500 hover:bg-black/5 hover:text-black'
+                }`}
+              >
+                {item.icon} {item.label}
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
 }
 
-// --- 3. PAGE WRAPPER FOR TRANSITIONS ---
-function AnimatedRoutes() {
-  const location = useLocation();
-  return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Main />} />
-        <Route path="/suggestions" element={<Suggestions />} />
-        <Route path="/compliance" element={<Compliance />} />
-        <Route path="/schedule" element={<Schedule />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/success" element={<Success />} />
-      </Routes>
-    </AnimatePresence>
-  );
-}
-
-// --- 4. THE MAIN EXPORT ---
+// --- THIS IS LIKELY THE PART THAT GOT DELETED BY MISTAKE! ---
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen relative overflow-x-hidden selection:bg-[#0066cc]/10">
-        
-        <BackgroundShapes />
-
-        {/* TOP NAV (Icons Fixed at Right) */}
-        <nav className="fixed top-0 w-full h-16 border-b border-gray-100 bg-white/40 backdrop-blur-xl z-[100] flex items-center justify-between px-10">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-sm rotate-45" />
-            </div>
-            <span className="text-xl font-bold tracking-tighter uppercase">Content Buddy</span>
-          </Link>
-          
-          <div className="flex items-center gap-8">
-            <Link to="/schedule" className="text-gray-400 hover:text-[#0066cc] transition-all">
-              <Calendar size={22} strokeWidth={1.5} />
-            </Link>
-            <Link to="/login" className="text-gray-400 hover:text-black transition-all">
-              <UserCircle size={26} strokeWidth={1.5} />
-            </Link>
-          </div>
-        </nav>
-
-        {/* MAIN CONTENT AREA */}
-        <main className="relative z-10">
-          <AnimatedRoutes />
-        </main>
-
-        <BottomDock />
-
-      </div>
-    </BrowserRouter>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route element={<DashboardLayout />}>
+          <Route path="/app" element={<Main />} />
+          <Route path="/suggestions" element={<Suggestions />} />
+          <Route path="/compliance" element={<Compliance />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/success" element={<Success />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }

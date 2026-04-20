@@ -1,19 +1,27 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link2, Sparkles, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 export default function Main() {
   const navigate = useNavigate();
   const [links, setLinks] = useState(['', '', '']);
-  const [inputText, setInputText] = useState(''); // <-- 1. Added State for the Text Box
+  const [inputText, setInputText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleStart = async () => {
     setIsAnalyzing(true);
+
+    // --- UI/UX TESTING BYPASS ---
+    // We use a small timeout to simulate the "loading" animation for 1 second,
+    // then immediately force navigation to Page 5.
+    setTimeout(() => {
+        setIsAnalyzing(false);
+        navigate('/suggestions'); 
+    }, 1000);
     
+    /* --- REAL API CALL (COMMENTED OUT FOR UI TESTING) ---
     try {
-      // 2. The POST Request now sends the REAL text from the screen
       const response = await fetch('http://localhost:8080/api/strategize', {
         method: 'POST',
         headers: {
@@ -22,26 +30,23 @@ export default function Main() {
         body: JSON.stringify({ prompt: inputText }) 
       });
       
-      // 3. Catch backend errors (like our empty prompt blocker!)
       if (!response.ok) {
         const errorData = await response.json();
         alert(errorData.error || "Buddy encountered an issue. Try again!");
         setIsAnalyzing(false);
-        return; // Stop the function here so it doesn't crash the next page
+        return; 
       }
 
       const data = await response.json();
       console.log("AI Data Received:", data);
-      
-      // 4. Send the real data to the Suggestions page
       navigate('/suggestions', { state: { strategyData: data } });
       
     } catch (error) {
       console.error("Network Error:", error);
-      alert("Failed to connect to the backend Buddy engine! Is the Java server running?");
-    } finally {
+      alert("Failed to connect to the backend Buddy engine!");
       setIsAnalyzing(false);
     }
+    ----------------------------------------------------- */
   };
   
   return (
@@ -82,7 +87,6 @@ export default function Main() {
       {/* PROMPT AREA */}
       <div className="bg-white/60 backdrop-blur-2xl border-2 border-dashed border-white/80 rounded-[40px] p-10 text-center hover:border-blue-400 transition-all group shadow-xl">
         <textarea 
-          // 5. Connect the Text Area to the State
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           className="w-full h-32 bg-transparent text-2xl font-light outline-none text-center resize-none placeholder:text-gray-300 text-[#1d1d1f]"
