@@ -1,6 +1,49 @@
 @import "tailwindcss";
 
+:root {
+  --apple-bg: #ffffff;
+  --apple-secondary: #f5f5f7;
+  --apple-text: #1d1d1f;
+  --apple-blue: #601ccb;
+  --apple-gray: #86868b;
+}
+
+/* In Tailwind v4, we use standard CSS for base styles */
 body {
-  @apply antialiased text-[#1d1d1f] bg-white;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  @apply antialiased overflow-x-hidden;
+  /* Remove bg-white here! */
+  background-color: transparent; 
+}
+
+/* Ensure the main root doesn't have a solid color */
+html, body, #root {
+  background-color: transparent !important;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* Custom Apple Utilities */
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm;
+}
+
+.glass-shape {
+  @apply absolute rounded-full blur-[120px] opacity-30 -z-10;
+  pointer-events: none;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d1d6;
+  border-radius: 10px;
+  border: 2px solid white;
 }
