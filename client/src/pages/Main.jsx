@@ -8,18 +8,30 @@ export default function Main() {
   const [links, setLinks] = useState(['', '', '']);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleStart = () => {
-    // 1. Check if at least one link is there (Optional)
+const handleStart = async () => {
     setIsAnalyzing(true);
+    
+    // Grab the text from your textarea prompt (You'll need to add state for this!)
+    // const promptText = "What are we promoting next?"; 
 
-    // 2. Mock API Delay (2.5 seconds)
-    // This makes the judges think the AI is actually reading the links
-    setTimeout(() => {
+    try {
+      // Phase 1: Call the initial extractor to get the style profile
+      const response = await fetch('http://localhost:8080/api/generate');
+      const data = await response.json();
+      
+      console.log("Buddy Extracted Style:", data);
+      
+      // Navigate to Suggestions and pass the data along!
+      navigate('/suggestions', { state: { strategyData: data } });
+      
+    } catch (error) {
+      console.error("Agentic Link Failed:", error);
+      alert("Failed to connect to the backend Buddy engine!");
+    } finally {
       setIsAnalyzing(false);
-      navigate('/suggestions');
-    }, 2500);
+    }
   };
-
+  
   return (
     <motion.main 
       initial={{ opacity: 0 }} animate={{ opacity: 1 }}
