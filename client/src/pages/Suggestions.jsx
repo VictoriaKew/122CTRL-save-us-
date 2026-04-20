@@ -115,11 +115,15 @@ export default function Suggestions() {
                     {aiData.storyboard.map((row, index) => (
                         <tr key={row.id} className={`border-b border-gray-100 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-[#fcfcfd]'}`}>
                             <td className="p-4 font-black text-lg text-center">{row.id}</td>
-                            <td className="p-4 text-center text-gray-400">
-                                <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center mx-auto">
-                                    <Camera size={20} />
-                                </div>
-                            </td>
+                            {/* NEW "MAGIC" CODE */}
+<td className="p-4 text-center">
+    <img 
+        src={`https://image.pollinations.ai/prompt/${encodeURIComponent(row.action + " simple pencil sketch storyboard style")}?width=160&height=120&nologo=true`} 
+        alt="Storyboard sketch"
+        className="w-20 h-14 object-cover rounded-md mx-auto shadow-sm border border-gray-200"
+        loading="lazy"
+    />
+</td>
                             <td className="p-4 font-bold">{row.shotType}</td>
                             <td className="p-4 font-bold text-blue-600">{row.movement}</td>
                             <td className="p-4 leading-relaxed">{row.action}</td>
