@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-// The './pages/' part is CRITICAL now!
 import BrandIdentity from './pages/BrandIdentity';
 import StrategyLab from './pages/StrategyLab';
 import ContentCalendar from './pages/ContentCalendar';
