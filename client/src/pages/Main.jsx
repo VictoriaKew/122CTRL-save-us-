@@ -1,52 +1,116 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2 } from 'lucide-react';
 
 export default function Main() {
   const navigate = useNavigate();
   const [links, setLinks] = useState(['', '', '']);
-  const [inputText, setInputText] = useState('');
+  
+  // NEW STATE: Managing the structured prompt choices
+  const [contentType, setContentType] = useState('Auto'); // 'Auto', 'Educational', 'Promotional', 'Entertainment'
+  const [subject, setSubject] = useState('');
+  
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [loadingText, setLoadingText] = useState("Buddy is Learning...");
+
+  // Clear memory when landing on this page so you start fresh!
+  useEffect(() => {
+    sessionStorage.removeItem('lastBuddyProject');
+  }, []);
+
+  const loadingMessages = [
+    "Analyzing video pacing...",
+    "Extracting Sonic DNA...",
+    "Cross-referencing viral hooks...",
+    "Drafting director's storyboard...",
+    "Finalizing UI assets..."
+  ];
+
+  // FORM VALIDATION: Must have at least 1 link AND (either Auto is selected OR they typed a subject)
+  const isFormValid = links.some(link => link.trim() !== '') && (contentType === 'Auto' || subject.trim() !== '');
+
+  useEffect(() => {
+    let interval;
+    if (isAnalyzing) {
+      let step = 0;
+      interval = setInterval(() => {
+        step = (step + 1) % loadingMessages.length;
+        setLoadingText(loadingMessages[step]);
+      }, 2000); 
+    } else {
+      setLoadingText("Buddy is Learning...");
+    }
+    return () => clearInterval(interval);
+  }, [isAnalyzing]);
 
   const handleStart = async () => {
     setIsAnalyzing(true);
 
-    // --- UI/UX TESTING BYPASS ---
-    // We use a small timeout to simulate the "loading" animation for 1 second,
-    // then immediately force navigation to Page 5.
+    // This creates the perfect prompt string to send to your Java backend!
+    const finalPrompt = contentType === 'Auto' 
+      ? "Analyze my style and suggest the best viral topic for my next video." 
+      : `Create an engaging ${contentType} video specifically about: ${subject}`;
+
+    // ==========================================
+    // HACKATHON DEMO MODE (Currently Active)
+    // ==========================================
     setTimeout(() => {
         setIsAnalyzing(false);
-        navigate('/suggestions'); 
-    }, 1000);
+
+        const dummyData = {
+          hook: "The Ultimate Workflow Hack for 2026",
+          sonicDna: "Trending: Lofi Study Beats / Acoustic Pop",
+          script: `Stop scrolling! If you want to survive this semester, save this video. 🚀 #Workflow #ProductivityHacks #Tech`,
+          storyboard: [
+            { id: 1, scene: "Office / Desk", character: "Subject sitting", shooting: "Wide angle, static", editing: "Fade in", dialogue: "(Background music starts)", duration: "3s" },
+            { id: 2, scene: "Close up on face", character: "Subject looking at camera", shooting: "Push in close-up", editing: "Hard cut", dialogue: "\"Stop scrolling, I have a secret.\"", duration: "2s" },
+            { id: 3, scene: "Screen capture", character: "Mouse moving on screen", shooting: "Screen recording", editing: "Zoom into screen", dialogue: "\"Here is exactly how this works...\"", duration: "5s" },
+            { id: 4, scene: "Office / Desk", character: "Subject smiling", shooting: "Medium shot", editing: "Whip pan out", dialogue: "\"Save this for later!\"", duration: "3s" }
+          ]
+        };
+        
+        sessionStorage.setItem('lastBuddyProject', JSON.stringify(dummyData));
+        navigate('/suggestions', { state: { strategyData: dummyData } }); 
+    }, 8000); 
     
-    /* --- REAL API CALL (COMMENTED OUT FOR UI TESTING) ---
+    // ==========================================
+    // REAL LIVE API MODE (Uncomment when ready!)
+    // ==========================================
+    /*
     try {
       const response = await fetch('http://localhost:8080/api/strategize', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: inputText }) 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: finalPrompt }) // Sends the smartly constructed prompt!
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(errorData.error || "Buddy encountered an issue. Try again!");
-        setIsAnalyzing(false);
-        return; 
-      }
+      if (!response.ok) throw new Error("API error");
 
       const data = await response.json();
-      console.log("AI Data Received:", data);
+      sessionStorage.setItem('lastBuddyProject', JSON.stringify(data));
       navigate('/suggestions', { state: { strategyData: data } });
       
     } catch (error) {
-      console.error("Network Error:", error);
-      alert("Failed to connect to the backend Buddy engine!");
-      setIsAnalyzing(false);
+      console.error("API Failed, falling back to Demo Data:", error);
+      setIsAnalyzing(false); 
+      
+      const fallbackData = {
+          hook: "The Ultimate Workflow Hack for 2026",
+          sonicDna: "Trending: Lofi Study Beats / Acoustic Pop",
+          script: "Stop scrolling! If you want to survive this semester, save this video. 🚀 #Workflow #ProductivityHacks #Tech",
+          storyboard: [
+            { id: 1, scene: "Office / Desk", character: "Subject sitting", shooting: "Wide angle, static", editing: "Fade in", dialogue: "(Background music starts)", duration: "3s" },
+            { id: 2, scene: "Close up on face", character: "Subject looking at camera", shooting: "Push in close-up", editing: "Hard cut", dialogue: "\"Stop scrolling, I have a secret.\"", duration: "2s" },
+            { id: 3, scene: "Screen capture", character: "Mouse moving on screen", shooting: "Screen recording", editing: "Zoom into screen", dialogue: "\"Here is exactly how this works...\"", duration: "5s" },
+            { id: 4, scene: "Office / Desk", character: "Subject smiling", shooting: "Medium shot", editing: "Whip pan out", dialogue: "\"Save this for later!\"", duration: "3s" }
+          ]
+      };
+      
+      sessionStorage.setItem('lastBuddyProject', JSON.stringify(fallbackData));
+      navigate('/suggestions', { state: { strategyData: fallbackData } });
     }
-    ----------------------------------------------------- */
+    */
   };
   
   return (
@@ -84,24 +148,64 @@ export default function Main() {
         ))}
       </div>
 
-      {/* PROMPT AREA */}
-      <div className="bg-white/60 backdrop-blur-2xl border-2 border-dashed border-white/80 rounded-[40px] p-10 text-center hover:border-blue-400 transition-all group shadow-xl">
-        <textarea 
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          className="w-full h-32 bg-transparent text-2xl font-light outline-none text-center resize-none placeholder:text-gray-300 text-[#1d1d1f]"
-          placeholder="What are we promoting next? (Or let Buddy think for you)"
-        />
+      {/* NEW INTERACTIVE PROMPT AREA */}
+      <div className="bg-white/60 backdrop-blur-2xl border-2 border-dashed border-white/80 rounded-[40px] p-8 md:p-10 text-center hover:border-blue-400 transition-all group shadow-xl">
+        <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">What is the goal for this video?</h3>
+
+        {/* The Category Selection Pills */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+          {['Auto', 'Educational', 'Promotional', 'Entertainment'].map(type => (
+            <button
+              key={type}
+              onClick={() => setContentType(type)}
+              className={`px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 ${
+                contentType === type
+                  ? 'bg-blue-600 text-white shadow-lg scale-105'
+                  : 'bg-white/60 text-gray-500 hover:bg-white hover:text-gray-800 border border-white/50'
+              }`}
+            >
+              {type === 'Auto' ? '✨ Let Buddy Decide' : type}
+            </button>
+          ))}
+        </div>
+
+        {/* The Subject Input (Smoothly animates in/out based on selection) */}
+        <AnimatePresence>
+          {contentType !== 'Auto' ? (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              className="overflow-hidden"
+            >
+              <textarea 
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="w-full h-24 bg-white/60 rounded-2xl p-5 text-xl font-light outline-none resize-none placeholder:text-gray-400 text-[#1d1d1f] shadow-inner border border-white/50 mb-2 focus:border-blue-400 transition-colors"
+                placeholder={`What is the main subject for this ${contentType.toLowerCase()} video?`}
+              />
+            </motion.div>
+          ) : (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-gray-500 italic mb-4 h-12 flex items-center justify-center"
+            >
+              Buddy will analyze your links and find the perfect viral gap for your audience.
+            </motion.p>
+          )}
+        </AnimatePresence>
         
         <button 
           onClick={handleStart}
-          disabled={isAnalyzing}
-          className="mt-8 bg-black text-white px-12 py-5 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-3 mx-auto shadow-2xl disabled:bg-gray-400 disabled:scale-100"
+          disabled={isAnalyzing || !isFormValid}
+          className="mt-6 bg-black text-white px-12 py-5 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-3 mx-auto shadow-2xl disabled:bg-gray-400 disabled:scale-100 disabled:cursor-not-allowed"
         >
           {isAnalyzing ? (
             <>
               <Loader2 size={20} className="animate-spin" />
-              Buddy is Learning...
+              {loadingText}
             </>
           ) : (
             <>

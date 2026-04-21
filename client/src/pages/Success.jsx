@@ -15,11 +15,12 @@ export default function Success() {
         Your strategy has been learned, checked, and scheduled. Buddy will handle the rest.
       </p>
 
-      <button 
-        onClick={() => navigate('/')}
+<button 
+        // 1. CHANGE '/' TO '/app'
+        onClick={() => navigate('/app')}
         className="flex items-center gap-2 text-blue-600 font-bold hover:underline"
       >
-        <ArrowLeft size={18} /> Back to Start
+        <ArrowLeft size={18} /> Create Another Strategy
       </button>
     </div>
   );
