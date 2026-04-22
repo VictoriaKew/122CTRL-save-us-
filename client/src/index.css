@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* THIS IS THE MAGIC FIX FOR TAILWIND V4! */
+/* It forces Tailwind to use our manual class toggle instead of the OS system preference */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --apple-bg: #ffffff;
   --apple-secondary: #f5f5f7;
@@ -8,24 +12,31 @@
   --apple-gray: #86868b;
 }
 
-/* In Tailwind v4, we use standard CSS for base styles */
-body {
-  @apply antialiased overflow-x-hidden;
-  /* Remove bg-white here! */
-  background-color: transparent; 
-}
-
-/* Ensure the main root doesn't have a solid color */
 html, body, #root {
   background-color: transparent !important;
   margin: 0;
   padding: 0;
+  /* Smooth transition for theme switching */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Base text colors for Light/Dark mode */
+body {
+  @apply antialiased overflow-x-hidden text-[#1d1d1f];
+}
 
-/* Custom Apple Utilities */
+.dark body {
+  @apply text-[#f5f5f7]; /* Apple's off-white for dark mode text */
+}
+
+/* THE MAGIC GLASS CLASSES */
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-sm;
+  @apply bg-white/70 backdrop-blur-2xl border border-white/40 shadow-xl transition-all duration-300;
+}
+
+/* Dark Mode Glass */
+.dark .glass-panel {
+  @apply bg-black/40 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)];
 }
 
 .glass-shape {
@@ -37,23 +48,11 @@ html, body, #root {
 ::-webkit-scrollbar {
   width: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #d1d1d6;
-  border-radius: 10px;
-  border: 2px solid white;
+  @apply bg-[#d1d1d6] dark:bg-[#3d3d41] border-2 border-white dark:border-black rounded-[10px];
 }
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-/* Hide scrollbar for IE, Edge and Firefox */
-.hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
