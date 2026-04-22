@@ -29,7 +29,13 @@ public class AgentController {
 
     @Value("${zai.api.key}")
     private String zaiApiKey;
-    
+
+    @Value("${supabase.url}")
+    private String supabaseUrl;
+
+    @Value("${supabase.key}")
+    private String supabaseKey;
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -183,4 +189,86 @@ private boolean isKeyMissing() {
         );
         return ResponseEntity.ok(mock);
     }
+
+    // ==========================================
+    // DATABASE: SAVE PROJECT & SCENES
+    // ==========================================
+    @PostMapping("/save-full-project")
+    public ResponseEntity<?> saveFullProject(@RequestBody Map<String, Object> payload) {
+        try {
+            // 1. Extract Project Info
+            String userId = (String) payload.get("user_id");
+            String title = (String) payload.get("title");
+            String hook = (String) payload.get("hook");
+            String script = (String) payload.get("script");
+            String sonicDna = (String) payload.get("sonicDna");
+            List<Map<String, Object>> storyboard = (List<Map<String, Object>>) payload.get("storyboard");
+
+            // 2. Prepare Supabase Headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("apikey", supabaseKey);
+            headers.set("Authorization", "Bearer " + supabaseKey);
+            headers.set("Prefer", "return=representation"); // Returns the created project_id
+
+            // 3. Save to 'history' (or projects) table
+            Map<String, Object> projectBody = Map.of(
+                "user_id", userId,
+                "title", title,
+                "hook", hook,
+                "script", script,
+                "sonic_dna", sonicDna
+            );
+
+            HttpEntity<Map<String, Object>> projectEntity = new HttpEntity<>(projectBody, headers);
+            ResponseEntity<String> projectResponse = restTemplate.postForEntity(
+                supabaseUrl.trim() + "/rest/v1/history", projectEntity, String.class
+            );
+
+            // 4. Get the generated Project ID
+            JsonNode projectNode = objectMapper.readTree(projectResponse.getBody());
+            int generatedProjectId = projectNode.get(0).get("project_id").asInt();
+
+            // 5. Save all Scenes to 'scenes' table
+            for (int i = 0; i < storyboard.size(); i++) {
+                Map<String, Object> scene = storyboard.get(i);
+                scene.put("project_id", generatedProjectId);
+                scene.put("scene_order", i + 1); // Sets the order 1, 2, 3...
+
+                HttpEntity<Map<String, Object>> sceneEntity = new HttpEntity<>(scene, headers);
+                restTemplate.postForEntity(supabaseUrl.trim() + "/rest/v1/scenes", sceneEntity, String.class);
+            }
+
+            return ResponseEntity.ok(Map.of("message", "Success! Project ID " + generatedProjectId + " saved with scenes."));
+
+        } catch (Exception e) {
+            System.err.println("❌ Database Error: " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to sync with Supabase."));
+        }
+    }
+
+    // ==========================================
+    // DATABASE: USER INFO MANAGEMENT
+    // ==========================================
+    @PostMapping("/sync-user")
+public ResponseEntity<?> syncUser(@RequestBody Map<String, Object> userData) {
+    // Check your IDE console for this! 
+    // If password_hash is null here, the problem is in the React code.
+    System.out.println("📥 DATA RECEIVED BY JAVA: " + userData); 
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("apikey", supabaseKey);
+    headers.set("Authorization", "Bearer " + supabaseKey);
+
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(userData, headers);
+    
+    try {
+        String url = supabaseUrl.trim() + "/rest/v1/user_info";
+        return restTemplate.postForEntity(url, entity, String.class);
+    } catch (org.springframework.web.client.HttpStatusCodeException e) {
+        System.err.println("🔥 SUPABASE ERROR: " + e.getResponseBodyAsString());
+        return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+}
 }

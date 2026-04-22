@@ -1,7 +1,25 @@
+import { useState } from 'react'; 
+import { supabase } from '../supabaseClient'; 
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: password,
+  });
+
+  if (error) {
+    alert("Login failed: " + error.message);
+  } else {
+    console.log("Logged in user ID:", data.user.id);
+    navigate('/app');
+  }
+};
   return (
     // ADDED: dark:bg-[#000000] and dark:text-[#f5f5f7]
     <div className="h-screen w-full relative overflow-hidden flex items-center justify-center p-6 font-sans text-[#1d1d1f] dark:text-[#f5f5f7] bg-[#f8f9fb] dark:bg-[#000000] transition-colors duration-500">
@@ -17,17 +35,21 @@ export default function Login() {
         {/* Updated Inputs for Dark Mode */}
         <input 
           type="text" 
-          placeholder="Username" 
+          placeholder="Email" 
           className="w-full mb-4 px-6 py-4 rounded-2xl bg-white/80 dark:bg-black/50 border border-white dark:border-white/10 outline-none focus:border-blue-500 dark:focus:border-blue-400 font-medium shadow-sm text-black dark:text-white transition-colors" 
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <input 
           type="password" 
           placeholder="Password" 
           className="w-full mb-8 px-6 py-4 rounded-2xl bg-white/80 dark:bg-black/50 border border-white dark:border-white/10 outline-none focus:border-blue-500 dark:focus:border-blue-400 font-medium shadow-sm text-black dark:text-white transition-colors" 
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
         
         <button 
-          onClick={() => navigate('/app')} 
+          onClick={handleLogin} 
           className="w-full bg-blue-600 dark:bg-blue-500 text-white py-4 rounded-2xl font-bold hover:scale-105 transition-transform mb-6 shadow-xl"
         >
           Sign In

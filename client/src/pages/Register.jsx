@@ -1,7 +1,57 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 export default function Register() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleRegister = async () => {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  console.log("🚀 Sending to Java Backend:", {
+  user_id: data.user.id,
+  email: email,
+  username: username,
+  password_hash: password
+});
+
+
+  if (data.user) {
+    try {
+      const response = await fetch('http://localhost:8080/api/sync-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: data.user.id,
+          email: email,
+          username: username,
+          password_hash: password
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        // This will tell you EXACTLY what the Java backend didn't like
+        throw new Error(errorData.error || "Backend sync failed");
+      }
+
+      alert("Account created and synced!");
+      navigate('/login');
+    } catch (err) {
+      alert("Auth worked, but DB sync failed: " + err.message);
+    }
+  }
+};
+
   return (
     <div className="h-screen w-full relative overflow-hidden flex items-center justify-center p-6 font-sans text-[#1d1d1f] bg-[#f8f9fb]">
       
@@ -11,10 +61,35 @@ export default function Register() {
       {/* CONTENT */}
       <div className="relative z-10 bg-white/70 backdrop-blur-2xl border border-white shadow-2xl rounded-[40px] p-12 w-full max-w-md text-center">
         <h2 className="text-4xl font-bold tracking-tight mb-8">Create Account.</h2>
-        <input type="text" placeholder="Username" className="w-full mb-4 px-6 py-4 rounded-2xl bg-white/80 border border-white outline-none focus:border-blue-500 font-medium shadow-sm" />
-        <input type="password" placeholder="Password" className="w-full mb-4 px-6 py-4 rounded-2xl bg-white/80 border border-white outline-none focus:border-blue-500 font-medium shadow-sm" />
-        <input type="password" placeholder="Confirm Password" className="w-full mb-8 px-6 py-4 rounded-2xl bg-white/80 border border-white outline-none focus:border-blue-500 font-medium shadow-sm" />
-        <button onClick={() => navigate('/login')} className="w-full bg-black text-white py-4 rounded-2xl font-bold hover:scale-105 transition-transform mb-6 shadow-xl">
+        <input 
+          type="text" 
+          placeholder="Username" 
+          className="w-full mb-4 px-6 py-4 rounded-2xl bg-white/80 border border-white outline-none focus:border-blue-500 font-medium shadow-sm" 
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input 
+          type="email" 
+          placeholder="Email Address" 
+          className="w-full mb-4 px-6 py-4 rounded-2xl bg-white/80 border outline-none focus:border-blue-500 font-medium" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input 
+          type="password" 
+          placeholder="Password" 
+          className="w-full mb-4 px-6 py-4 rounded-2xl bg-white/80 border border-white outline-none focus:border-blue-500 font-medium shadow-sm" 
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <input 
+          type="password" 
+          placeholder="Confirm Password" 
+          className="w-full mb-8 px-6 py-4 rounded-2xl bg-white/80 border border-white outline-none focus:border-blue-500 font-medium shadow-sm" 
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+        <button onClick={handleRegister} className="w-full bg-black text-white py-4 rounded-2xl font-bold hover:scale-105 transition-transform mb-6 shadow-xl">
           Create an account
         </button>
       </div>
