@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,154 +35,180 @@ public class AgentController {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final String ZAI_API_URL = "https://api.z.ai/v1/chat/completions";
+    @Value("${zai.api.url}")
+    private String zaiApiUrl;
 
     // ==========================================
-    // ENDPOINT 1: GENERATE PROJECT (Strategize)
+    // PHASE 01: STRATEGIZE
     // ==========================================
     @PostMapping(value = "/strategize", produces = "application/json")
     public ResponseEntity<?> generateSpecificStrategy(@RequestBody Map<String, Object> requestPayload) {
-        
         String userTopic = (String) requestPayload.get("prompt");
         List<String> rawLinks = (List<String>) requestPayload.get("links");
 
         if (userTopic == null || userTopic.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", "Buddy needs a topic! Please type something before generating."));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Topic required"));
         }
 
-        // --- UPGRADE 2: URL PRE-PROCESSING ---
-        // We clean the links to remove extra spaces and ignore empty inputs
         List<String> cleanLinks = (rawLinks == null) ? new ArrayList<>() : rawLinks.stream()
                 .filter(link -> link != null && !link.trim().isEmpty())
-                .map(String::trim)
-                .collect(Collectors.toList());
+                .map(String::trim).collect(Collectors.toList());
 
-        System.out.println("✅ Request Received. Topic: " + userTopic + " | Links provided: " + cleanLinks.size());
+        System.out.println("✅ Phase 01 Request: " + userTopic);
 
-        String systemPrompt = "You are 'Content Buddy'. Analyze these style references: " + cleanLinks.toString() + ". " +
-            "Topic: " + userTopic + ". Return ONLY a raw JSON with 'hook', 'sonicDna', 'script', and 'storyboard'.";
+        // STRICT PROMPT: Forces high-quality personas and exact JSON structures 
+        String systemPrompt = "Act as a Viral Content Strategist for Gen-Z. " +
+            "Create a strategy for Topic: '" + userTopic + "' with style references: " + cleanLinks.toString() + ".\n\n" +
+            "Return ONLY a raw JSON object in this EXACT format:\n" +
+            "{\n" +
+            "  \"hook\": \"Short, high-retention opening line\",\n" +
+            "  \"sonicDna\": \"Detailed description of trending audio and SFX\",\n" +
+            "  \"script\": \"A high-energy script as a single string\",\n" +
+            "  \"storyboard\": [\n" +
+            "    { \"scene\": 1, \"visual\": \"Detailed visual description 1\" },\n" +
+            "    { \"scene\": 2, \"visual\": \"Detailed visual description 2\" }\n" +
+            "  ]\n" +
+            "}\n\n" +
+            "Note: 'storyboard' MUST be an array of OBJECTS. Do not include any chat text.";
 
         return callZaiApi(systemPrompt, "strategy");
     }
 
     // ==========================================
-    // ENDPOINT 2: COMPLIANCE SCAN (Phase 03)
+    // PHASE 03: COMPLIANCE
     // ==========================================
     @PostMapping(value = "/compliance", produces = "application/json")
     public ResponseEntity<?> checkCompliance(@RequestBody Map<String, Object> request) {
         String script = (String) request.get("script");
         List<String> platforms = (List<String>) request.get("platforms");
 
-        System.out.println("🛡️ Scanning script for platforms: " + platforms);
+        System.out.println("🛡️ Scanning script for: " + platforms);
 
-        if (isKeyMissing()) {
-            return getMockComplianceResponse();
-        }
+        if (isKeyMissing()) return getMockComplianceResponse();
 
-        String systemPrompt = "Analyze this script for " + platforms.toString() + " compliance: " + script + 
-            ". Return ONLY a raw JSON object with 'score' (0-100) and an array of 'issues' (type, platform, title, desc).";
+        String systemPrompt = "Act as a Social Media Policy Moderator. Analyze this script for " + platforms.toString() + " compliance: '" + script + "'.\n" +
+            "Return ONLY raw JSON in this format:\n" +
+            "{\n" +
+            "  \"score\": 85,\n" +
+            "  \"issues\": [\n" +
+            "    { \"type\": \"warning\", \"platform\": \"TikTok\", \"title\": \"Pacing\", \"desc\": \"Example desc\" }\n" +
+            "  ]\n" +
+            "}";
 
         return callZaiApi(systemPrompt, "compliance");
     }
 
     // ==========================================
-    // ENDPOINT 3: REFINE PROJECT (Co-Pilot)
+    // PHASE 04: CO-PILOT (Refine)
     // ==========================================
     @PostMapping(value = "/refine", produces = "application/json")
     public ResponseEntity<?> refineProject(@RequestBody Map<String, Object> request) {
         Object currentData = request.get("currentData"); 
         String instruction = (String) request.get("instruction");
 
-        if (currentData == null || instruction == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Missing data or instruction"));
-        }
+        System.out.println("🔄 Refining with: " + instruction);
 
-        System.out.println("🔄 Refining Project with instruction: " + instruction);
-
-        String systemPrompt = "Update this project: " + currentData.toString() + " based on: " + instruction + 
-            ". Return ONLY a raw JSON object with the exact same structure.";
+        String systemPrompt = "You are a Creative Director. Update this JSON project data: " + currentData.toString() + 
+            " based on user feedback: '" + instruction + "'. " +
+            "Maintain the original tone and structure. Return ONLY raw JSON.";
 
         return callZaiApi(systemPrompt, "strategy");
     }
 
-    // ==========================================
-    // CORE LOGIC: MOCK vs REAL API
-    // ==========================================
-    
-private boolean isKeyMissing() {
-    // TODO: DELETE 'return true' WHEN I GET THE REAL API KEY!
-    return true; // THIS FORCES MOCK MODE 100% OF THE TIME
-}
+    private boolean isKeyMissing() {
+        return zaiApiKey == null || zaiApiKey.trim().isEmpty() || zaiApiKey.startsWith("${"); 
+    }
 
     private ResponseEntity<?> callZaiApi(String prompt, String type) {
-        
-        // --- MOCK GATEKEEPER ---
-        if (isKeyMissing()) {
-            try {
-                Thread.sleep(2000); // Simulate network delay
-                if (type.equals("compliance")) return getMockComplianceResponse();
-                return getMockProjectResponse("MOCK Strategy: " + prompt.substring(0, Math.min(20, prompt.length())) + "...");
-            } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-        }
+        if (isKeyMissing()) return getMockProjectResponse("MOCK Mode");
 
-        // --- REAL API CALL ---
-        System.out.println("🌐 Calling Real Z.ai API...");
+        System.out.println("🌐 Calling Real ILMU-GLM-5.1 API...");
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(zaiApiKey);
+        headers.set("x-api-key", zaiApiKey); // Guide requirement for Anthropic-compatible format [cite: 1, 306]
+        headers.set("anthropic-version", "2023-06-01"); 
 
         Map<String, Object> body = new HashMap<>();
-        body.put("model", "glm-5.1-flash");
+        body.put("model", "ilmu-glm-5.1"); // Exact model name from handbook [cite: 1, 9]
         body.put("messages", List.of(Map.of("role", "user", "content", prompt)));
-        body.put("temperature", 0.7);
+        body.put("max_tokens", 4096);
 
         try {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(ZAI_API_URL, entity, String.class);
+            // application.properties: zai.api.url=https://api.ilmu.ai/anthropic/v1/messages
+            ResponseEntity<String> response = restTemplate.postForEntity(zaiApiUrl, entity, String.class);
             
-            JsonNode rootNode = objectMapper.readTree(response.getBody());
-            String generatedJson = rootNode.path("choices").get(0).path("message").path("content").asText();
+            String responseBody = response.getBody();
+            JsonNode rootNode = objectMapper.readTree(responseBody);
+            // Anthropic Messages structure: content[0].text [cite: 1, 306]
+            String text = rootNode.path("content").get(0).path("text").asText().trim();
             
-            generatedJson = generatedJson.replaceAll("```json", "").replaceAll("```", "").trim();
+            // BULLETPROOF EXTRACTION: Find the first { and last } to avoid conversational text crashes 
+            int firstBrace = text.indexOf("{");
+            int lastBrace = text.lastIndexOf("}");
+            if (firstBrace == -1 || lastBrace == -1) throw new Exception("AI failed to send JSON data");
             
+            String cleanJson = text.substring(firstBrace, lastBrace + 1);
+
             if (type.equals("compliance")) {
-                ComplianceResponse comp = objectMapper.readValue(generatedJson, ComplianceResponse.class);
-                return ResponseEntity.ok(comp);
+                return ResponseEntity.ok(objectMapper.readValue(cleanJson, ComplianceResponse.class));
             } else {
-                ProjectResponse project = objectMapper.readValue(generatedJson, ProjectResponse.class);
-                return ResponseEntity.ok(project);
+                return ResponseEntity.ok(objectMapper.readValue(cleanJson, ProjectResponse.class));
             }
             
         } catch (Exception e) {
-            // --- UPGRADE 3: PRODUCTION ERROR LOGGING ---
-            System.err.println("❌ CRITICAL ERROR IN [" + type.toUpperCase() + "] CALL");
-            System.err.println("Message: " + e.getMessage());
-            e.printStackTrace(); 
-            return ResponseEntity.status(500).body(Map.of("error", "AI brain offline. Check VS Code console."));
+            System.err.println("❌ ERROR: " + e.getMessage());
+            if (e instanceof HttpStatusCodeException) {
+                System.err.println("Server Said: " + ((HttpStatusCodeException)e).getResponseBodyAsString());
+            }
+            return ResponseEntity.status(500).body(Map.of("error", "AI Response Mismatch. Check terminal."));
         }
     }
 
-    // ==========================================
-    // HELPER MOCK GENERATORS
-    // ==========================================
     private ResponseEntity<ProjectResponse> getMockProjectResponse(String title) {
         ProjectResponse mock = new ProjectResponse();
         mock.hook = title;
-        mock.sonicDna = "MOCK: Viral Acoustic Pop";
-        mock.script = "This is a mock script. The Java backend plumbing is 100% ready!";
-        mock.storyboard = new ArrayList<>();
+        mock.script = "Mock script active.";
         return ResponseEntity.ok(mock);
     }
 
     private ResponseEntity<ComplianceResponse> getMockComplianceResponse() {
         ComplianceResponse mock = new ComplianceResponse();
-        mock.score = 92;
-        mock.issues = List.of(
-            new ComplianceResponse.ComplianceIssue("warning", "TikTok", "Pacing", "Video might be too long for TikTok average attention span."),
-            new ComplianceResponse.ComplianceIssue("success", "YouTube", "Content", "Clean content detected.")
-        );
+        mock.score = 100;
+        mock.issues = new ArrayList<>();
         return ResponseEntity.ok(mock);
+    }
+}
+
+// ==========================================
+// DATA MODELS (Equipped with Safety Shields)
+// ==========================================
+
+@JsonIgnoreProperties(ignoreUnknown = true) // Ignores unknown fields like "id" or "duration" 
+class ProjectResponse {
+    public String hook;
+    public String sonicDna;
+    public String script;
+    public List<StoryboardRow> storyboard = new ArrayList<>();
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class StoryboardRow {
+        public int scene;
+        public String visual; // Explicitly matches the "visual" field from ILMU-GLM-5.1 
+    }
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+class ComplianceResponse {
+    public int score;
+    public List<ComplianceIssue> issues = new ArrayList<>();
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ComplianceIssue {
+        public String type; // 'warning' | 'success'
+        public String platform;
+        public String title;
+        public String desc;
     }
 }
