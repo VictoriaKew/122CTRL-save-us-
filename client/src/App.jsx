@@ -16,15 +16,19 @@ import Success from './pages/Success';
 function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Grab the theme and toggle function from Context
   const { theme, toggleTheme } = useTheme(); 
   
-  // ==========================================
-  // DYNAMIC MOCK DATA GENERATOR
-  // Always ensures the calendar has data based on the *current* real-world date
-  // ==========================================
-  const [scheduledPosts, setScheduledPosts] = useState([]);
+  // Dynamic Mock Data
+  const [scheduledPosts, setScheduledPosts] = useState(() => {
+    const today = new Date();
+    const tmrw = new Date(today); tmrw.setDate(today.getDate() + 1);
+    const getDayName = (d) => d.toLocaleString('en-US', { weekday: 'short' });
+    const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    return [
+      { id: 1, title: "3 Tips for Surviving FSKTM Finals", date: formatDate(tmrw), dayNum: getDayName(tmrw) }
+    ];
+  });
 
   const navItems = [
     { path: '/app', label: 'Create', icon: <Wand2 size={18} /> },
@@ -36,66 +40,80 @@ function DashboardLayout() {
   return (
     <div className="flex h-screen w-full relative overflow-hidden font-sans text-[#1d1d1f] dark:text-[#f5f5f7] bg-[#f8f9fb] dark:bg-[#000000] transition-colors duration-500">
       
-      {/* THE GLOWING ORB */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[1000px] max-h-[1000px] bg-gradient-to-tr from-purple-500 via-blue-400 to-indigo-400 dark:from-fuchsia-500 dark:via-blue-500 dark:to-purple-400 rounded-full blur-[140px] opacity-25 dark:opacity-40 pointer-events-none z-0 transition-all duration-500"></div>
+      {/* THE GLOWING ORB BACKGROUND */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[1000px] max-h-[1000px] bg-gradient-to-tr from-purple-500 via-blue-400 to-indigo-400 dark:from-fuchsia-600 dark:via-blue-600 dark:to-purple-500 rounded-full blur-[140px] opacity-20 dark:opacity-30 pointer-events-none z-0 transition-all duration-500"></div>
 
-      {/* SIDEBAR: Frosted Glass Panel */}
-      <aside className="w-64 bg-white/80 dark:bg-black/40 backdrop-blur-2xl border-r border-white/80 dark:border-white/10 hidden md:flex flex-col p-6 z-20 shadow-xl transition-all duration-300">
-        <div className="flex items-center gap-3 mb-10">
+      {/* SIDEBAR: Glass Panel (ONLY ONE HERE) */}
+      <aside className="w-72 bg-white/70 dark:bg-[#0a0a0c]/40 backdrop-blur-3xl border-r border-white/40 dark:border-white/5 hidden md:flex flex-col p-8 z-20 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] dark:shadow-[20px_0_40px_-20px_rgba(0,0,0,0.4)] transition-all duration-500">
+        <div className="flex items-center gap-3 mb-12">
             <img src={logo} alt="Logo" className="w-12 h-12 drop-shadow-md" />
-            <h2 className="text-xl font-bold tracking-tight">Buddy.</h2>
+            <h2 className="text-2xl font-black tracking-tighter">Buddy.</h2>
         </div>
         
         <div className="flex-1">
-          <h3 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Pipeline</h3>
-          <ul className="space-y-3">
+          <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-6">Content Pipeline</h3>
+          <ul className="space-y-4">
             {scheduledPosts.length === 0 ? (
-                <li className="text-sm font-medium text-gray-400 dark:text-gray-600 italic">No scheduled posts</li>
+                <li className="text-sm font-medium text-gray-400 dark:text-gray-600 italic px-2">No scheduled posts</li>
             ) : (
                 scheduledPosts.map((post, idx) => (
-                    <li key={idx} className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] shrink-0"></div>
-                        <span className="truncate">{post.title}</span> 
-                        <span className="text-xs text-gray-400 shrink-0">({post.dayNum})</span>
+                    <li key={idx} className="text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-3 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-default group">
+                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)] shrink-0 group-hover:scale-125 transition-transform"></div>
+                        <span className="truncate flex-1">{post.title}</span> 
+                        <span className="text-[10px] opacity-40 font-black shrink-0">({post.dayNum})</span>
                     </li>
                 ))
             )}
           </ul>
         </div>
+
+        <div className="pt-6 border-t border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-3 p-2">
+                <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                    <User size={20} />
+                </div>
+                <div>
+                    <p className="text-sm font-bold">FSKTM Creator</p>
+                    <p className="text-[10px] text-gray-400 uppercase font-black">Pro Plan</p>
+                </div>
+            </div>
+        </div>
       </aside>
 
       <div className="flex-1 flex flex-col relative h-full z-10">
-        {/* HEADER: Frosted Glass Panel */}
-        <header className="h-20 bg-white/80 dark:bg-black/40 backdrop-blur-md border-b border-white/80 dark:border-white/10 flex items-center justify-end px-8 z-20 shadow-sm transition-all duration-300">
-          <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
-            
-            {/* THEME TOGGLE BUTTON */}
-            <button onClick={toggleTheme} className="hover:text-black dark:hover:text-white transition-colors drop-shadow-sm">
+        {/* HEADER: Tinted Glass Top Bar */}
+        <header className="h-20 bg-white/40 dark:bg-[#0a0a0c]/20 backdrop-blur-md border-b border-white/40 dark:border-white/5 flex items-center justify-end px-10 z-20 transition-all duration-500">
+          <div className="flex items-center gap-6 text-gray-500 dark:text-gray-400">
+            <button onClick={toggleTheme} className="hover:text-black dark:hover:text-white transition-all p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full">
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
-
-            <button className="hover:text-black dark:hover:text-white transition-colors relative">
+            <button className="hover:text-black dark:hover:text-white transition-all relative">
                 <Bell size={20} />
-                {scheduledPosts.length > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-black"></span>}
+                {scheduledPosts.length > 0 && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-[#f8f9fb] dark:border-black"></span>}
             </button>
-            <button className="hover:text-black dark:hover:text-white transition-colors"><Settings size={20} /></button>
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full text-white flex items-center justify-center shadow-md cursor-pointer border border-white/20">
-              <User size={20} />
-            </div>
+            <button className="hover:text-black dark:hover:text-white transition-all"><Settings size={20} /></button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto pb-32">
-          {/* Outlet passes the state down to all pages (like Schedule.jsx) */}
+        {/* MAIN CONTENT AREA */}
+        <main className="flex-1 overflow-y-auto pb-40">
           <Outlet context={{ scheduledPosts, setScheduledPosts }} />
         </main>
 
-        {/* BOTTOM NAVIGATION: Floating Island Style */}
-        <nav className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/70 dark:bg-black/50 backdrop-blur-3xl border border-white dark:border-white/10 shadow-2xl rounded-full px-2 py-2 flex gap-2 z-50 transition-all duration-300">
+        {/* FLOATING NAVIGATION */}
+        <nav className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-white/70 dark:bg-black/40 backdrop-blur-3xl border border-white/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-full px-3 py-3 flex gap-2 z-50 transition-all duration-500">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <button key={item.path} onClick={() => navigate(item.path)} className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${isActive ? 'bg-black dark:bg-white text-white dark:text-black shadow-lg scale-105' : 'text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-black dark:hover:text-white'}`}>
+              <button 
+                key={item.path} 
+                onClick={() => navigate(item.path)} 
+                className={`flex items-center gap-2 px-8 py-3.5 rounded-full font-black text-xs uppercase tracking-widest transition-all duration-300 ${
+                  isActive 
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-xl scale-105' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white'
+                }`}
+              >
                 {item.icon} {item.label}
               </button>
             );
