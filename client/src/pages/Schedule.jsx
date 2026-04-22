@@ -62,11 +62,11 @@ export default function Schedule() {
     setTimeout(() => setToast({ show: false, message: "" }), 3000);
   };
 
-  // --- HACKATHON SAFETY NET: LOAD FAKE DATA IF BACKEND FAILS ---
+  // --- HACKATHON SAFETY NET ---
   const loadDemoProject = () => {
       setPendingProject({
-          hook: "How I built this app in 24 hours 🚀",
-          script: "This is a demo project to show off the scheduling UI because the backend is offline!",
+          hook: "Buddy AI: Viral Content Hack 🚀",
+          script: "In this video, I'll show you how we used ILMU-GLM-5.1 to build a content scheduler in under 24 hours!",
       });
       triggerToast("Loaded Demo Project!");
   };
@@ -103,7 +103,7 @@ export default function Schedule() {
     setScheduledPosts(updatedSchedule);
     setPendingProject(null); 
     sessionStorage.removeItem('lastBuddyProject'); 
-    triggerToast("✨ Post Locked into Calendar!");
+    triggerToast("✨ Project Published to Grid!");
   };
 
   const getPostsForDay = (day) => {
@@ -112,108 +112,106 @@ export default function Schedule() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-8 max-w-[1400px] mx-auto pb-40 relative z-10">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-8 max-w-[1400px] mx-auto pb-80 relative z-10">
       
-      {/* HEADER WITH LAUNCH WORKSPACE BUTTON */}
-      <header className="mb-8 mt-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      {/* HEADER */}
+      <header className="mb-10 mt-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
             <motion.h2 className="text-blue-600 dark:text-blue-400 font-bold text-sm tracking-[0.3em] uppercase mb-4 flex items-center gap-2">
               Phase 04: Content Calendar
             </motion.h2>
-            <h1 className="text-5xl font-bold tracking-tight text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">Publishing Hub.</h1>
+            <h1 className="text-5xl font-black tracking-tight text-[#1d1d1f] dark:text-[#f5f5f7] mb-3">Publishing Hub.</h1>
             <div className="flex items-center gap-4 text-gray-500 font-medium">
-                <p>Manage your upcoming viral hits.</p>
-                <span className="hidden md:inline-block border-l border-gray-300 dark:border-gray-700 h-4"></span>
-                <span className="flex items-center gap-1.5 text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
-                    <Globe2 size={12} /> KL, Malaysia • {liveTimeMY}
+                <p>Ready to go viral?</p>
+                <span className="hidden md:inline-block border-l border-black/10 dark:border-white/10 h-4"></span>
+                <span className="flex items-center gap-1.5 text-blue-500 bg-blue-500/5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border border-blue-500/10">
+                    <Globe2 size={12} /> {liveTimeMY} KL, MY
                 </span>
             </div>
         </div>
         
-        {/* Navigate to Success Page */}
         <button 
             onClick={() => navigate('/success')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:scale-105 transition-all shadow-lg shrink-0"
+            className="bg-black dark:bg-white text-white dark:text-black px-10 py-4 rounded-full font-black text-sm flex items-center gap-2 hover:scale-105 transition-all shadow-2xl shrink-0"
         >
             Launch Workspace <ArrowRight size={18} />
         </button>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-10">
         
-        {/* LEFT COLUMN: Pending Approvals */}
+        {/* LEFT COLUMN: Awaiting Scheduling */}
         <div className="col-span-1 space-y-6">
-            <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Awaiting Scheduling</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 ml-2">Awaiting Scheduling</h3>
             
             <AnimatePresence mode="popLayout">
                 {pendingProject ? (
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-                        className="bg-white/80 dark:bg-white/[0.03] backdrop-blur-2xl border border-blue-200 dark:border-blue-500/30 rounded-[32px] p-6 shadow-xl relative"
+                        className="bg-white/70 dark:bg-[#0a0a0c]/60 backdrop-blur-3xl border border-white/40 dark:border-white/10 rounded-[32px] p-8 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.2)] dark:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden"
                     >
-                        <div className="inline-block bg-blue-100 dark:bg-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
-                            Ready to Post
+                        <div className="inline-block bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-6 border border-blue-500/10">
+                            Optimization Complete
                         </div>
-                        <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-snug">{pendingProject.hook}</h4>
-                        <p className="text-xs text-gray-500 line-clamp-2 mb-6 italic">"{pendingProject.script}"</p>
+                        <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 leading-tight tracking-tight">{pendingProject.hook}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-8 italic leading-relaxed">"{pendingProject.script}"</p>
                         
-                        {/* THE 2 OPTIONS FOR SCHEDULING */}
-                        <div className="bg-gray-100 dark:bg-white/5 p-1 rounded-xl flex mb-4">
+                        <div className="bg-black/5 dark:bg-white/5 p-1 rounded-2xl flex mb-6 border border-black/5 dark:border-white/5">
                             <button 
                                 onClick={() => setScheduleMode("auto")}
-                                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${scheduleMode === 'auto' ? 'bg-white dark:bg-black shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                className={`flex-1 py-3 text-xs font-black rounded-xl transition-all ${scheduleMode === 'auto' ? 'bg-white dark:bg-black shadow-xl text-blue-600 dark:text-blue-400 border border-black/5 dark:border-white/10' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                             >
                                 🤖 Buddy Suggests
                             </button>
                             <button 
                                 onClick={() => setScheduleMode("manual")}
-                                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${scheduleMode === 'manual' ? 'bg-white dark:bg-black shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                className={`flex-1 py-3 text-xs font-black rounded-xl transition-all ${scheduleMode === 'manual' ? 'bg-white dark:bg-black shadow-xl text-gray-900 dark:text-white border border-black/5 dark:border-white/10' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                             >
                                 ✍️ Custom Time
                             </button>
                         </div>
 
-                        {/* MODE 1: AI SUGGESTION */}
                         {scheduleMode === "auto" && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl border border-purple-100 dark:border-purple-500/20 text-center">
-                                <Sparkles size={24} className="text-purple-500 mx-auto mb-2 animate-pulse" />
-                                <span className="block text-xs font-bold text-purple-700 dark:text-purple-400 mb-1">Peak Viral Window Detected</span>
-                                <span className="block text-lg font-black text-gray-900 dark:text-white">{formattedSuggestedDisplay}</span>
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6 p-5 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl border border-purple-500/20 text-center">
+                                <Sparkles size={28} className="text-purple-500 mx-auto mb-3 animate-pulse" />
+                                <span className="block text-[10px] font-black text-purple-600 dark:text-purple-400 mb-2 uppercase tracking-widest">Peak Viral Window</span>
+                                <span className="block text-lg font-black text-gray-900 dark:text-white leading-none">{formattedSuggestedDisplay}</span>
                             </motion.div>
                         )}
 
-                        {/* MODE 2: MANUAL INPUT */}
                         {scheduleMode === "manual" && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3 mb-4">
-                                <div className="flex-1 flex items-center gap-2 bg-gray-50 dark:bg-black/40 rounded-xl p-3 border border-gray-100 dark:border-white/5 focus-within:border-blue-400 transition-colors">
-                                    <CalendarIcon size={16} className="text-gray-400 shrink-0" />
-                                    <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent outline-none w-full text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer"/>
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3 mb-6">
+                                <div className="flex-1 flex items-center gap-3 bg-black/5 dark:bg-black/40 rounded-2xl p-4 border border-black/5 dark:border-white/5 focus-within:border-blue-500/50 transition-colors">
+                                    <CalendarIcon size={18} className="text-gray-400 shrink-0" />
+                                    <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent outline-none w-full text-sm font-bold text-gray-700 dark:text-gray-200 cursor-pointer"/>
                                 </div>
-                                <div className="flex-1 flex items-center gap-2 bg-gray-50 dark:bg-black/40 rounded-xl p-3 border border-gray-100 dark:border-white/5 focus-within:border-blue-400 transition-colors">
-                                    <Clock size={16} className="text-gray-400 shrink-0" />
-                                    <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="bg-transparent outline-none w-full text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer"/>
+                                <div className="flex-1 flex items-center gap-3 bg-black/5 dark:bg-black/40 rounded-2xl p-4 border border-black/5 dark:border-white/5 focus-within:border-blue-500/50 transition-colors">
+                                    <Clock size={18} className="text-gray-400 shrink-0" />
+                                    <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="bg-transparent outline-none w-full text-sm font-bold text-gray-700 dark:text-gray-200 cursor-pointer"/>
                                 </div>
                             </motion.div>
                         )}
 
                         <button 
                             onClick={handleSchedulePost}
-                            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold transition-colors shadow-md text-sm"
+                            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black transition-all hover:shadow-2xl shadow-lg text-sm active:scale-95"
                         >
-                            Lock it in Calendar <ArrowRight size={16} />
+                            Confirm Publication <ArrowRight size={18} />
                         </button>
                     </motion.div>
                 ) : (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/50 dark:bg-white/[0.02] border border-dashed border-gray-300 dark:border-white/20 rounded-[32px] p-10 flex flex-col items-center justify-center text-center min-h-[300px]">
-                        <CheckCircle2 size={48} className="text-gray-300 dark:text-gray-600 mb-4" />
-                        <h4 className="text-gray-500 dark:text-gray-400 font-bold mb-1">Inbox Zero!</h4>
-                        <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">No pending projects to schedule.</p>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/40 dark:bg-[#0a0a0c]/40 backdrop-blur-xl border border-dashed border-gray-300 dark:border-white/10 rounded-[32px] p-10 flex flex-col items-center justify-center text-center min-h-[350px] shadow-inner">
+                        <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-6">
+                            <CheckCircle2 size={40} className="text-gray-300 dark:text-gray-600" />
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-400 dark:text-gray-500 mb-2">Workspace Empty</h4>
+                        <p className="text-xs text-gray-400 dark:text-gray-600 mb-8 max-w-[200px] leading-relaxed">Your creative queue is currently empty. Generate a new strategy to begin.</p>
                         
                         <button 
                             onClick={loadDemoProject}
-                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300 transition-colors"
+                            className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 rounded-xl text-xs font-black text-gray-600 dark:text-gray-300 transition-all shadow-sm active:scale-95"
                         >
-                            <Wand2 size={14} /> Load Demo Project
+                            <Wand2 size={14} /> Use Demo Data
                         </button>
                     </motion.div>
                 )}
@@ -222,22 +220,23 @@ export default function Schedule() {
 
         {/* RIGHT COLUMN: The Dynamic Visual Grid Calendar */}
         <div className="col-span-1 xl:col-span-3 space-y-6">
-            <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 flex items-center justify-between">
-                {monthName} {currentYear} Content Grid
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 flex items-center justify-between ml-2">
+                <span>{monthName} {currentYear} GRID</span>
+                <span className="opacity-50">PUBLISHED & SCHEDULED</span>
             </h3>
 
-            <div className="bg-white/80 dark:bg-white/[0.03] backdrop-blur-2xl border border-white/80 dark:border-white/10 shadow-xl rounded-[40px] p-4 md:p-6">
-                <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2">
+            <div className="bg-white/70 dark:bg-[#0a0a0c]/60 backdrop-blur-3xl border border-white/40 dark:border-white/10 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.2)] dark:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] rounded-[40px] p-5 md:p-8 transition-all duration-500">
+                <div className="grid grid-cols-7 gap-1 md:gap-2 mb-4">
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="text-center text-[10px] md:text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 py-2">
+                        <div key={day} className="text-center text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-600 py-2">
                             {day}
                         </div>
                     ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-1 md:gap-3">
+                <div className="grid grid-cols-7 gap-2 md:gap-4">
                     {emptyBlanks.map((_, i) => (
-                        <div key={`blank-${i}`} className="min-h-[80px] md:min-h-[120px] rounded-2xl bg-gray-50/50 dark:bg-white/[0.01]"></div>
+                        <div key={`blank-${i}`} className="min-h-[90px] md:min-h-[130px] rounded-[24px] bg-black/[0.02] dark:bg-white/[0.01]"></div>
                     ))}
 
                     {monthDays.map(day => {
@@ -247,36 +246,40 @@ export default function Schedule() {
                         return (
                             <div 
                                 key={day} 
-                                className={`min-h-[80px] md:min-h-[120px] rounded-xl md:rounded-2xl p-1.5 md:p-2 border transition-all relative ${
+                                className={`min-h-[90px] md:min-h-[130px] rounded-[24px] p-3 border transition-all relative ${
                                     isToday 
-                                    ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-900/20 shadow-inner' 
-                                    : 'border-gray-100 dark:border-white/5 bg-white/50 dark:bg-white/[0.02] hover:border-gray-300 dark:hover:border-white/20'
+                                    ? 'border-blue-500/50 bg-blue-500/[0.08] dark:bg-blue-500/[0.15] shadow-[inset_0_0_20px_rgba(59,130,246,0.1)] scale-[1.02] z-10' 
+                                    : 'border-black/5 dark:border-white/5 bg-white/30 dark:bg-white/[0.02] hover:border-black/10 dark:hover:border-white/20'
                                 }`}
                             >
-                                <div className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full mb-1 ${
-                                    isToday ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 dark:text-gray-500'
+                                <div className={`text-[11px] font-black w-7 h-7 flex items-center justify-center rounded-full mb-2 ${
+                                    isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-gray-400 dark:text-gray-500'
                                 }`}>
                                     {day}
                                 </div>
                                 
-                                {/* Removed overflow-hidden so tooltips can escape! */}
-                                <div className="space-y-1.5 absolute bottom-2 left-1.5 right-1.5 z-20">
+                                <div className="space-y-2 absolute bottom-3 left-2.5 right-2.5 z-20">
                                     {dayPosts.map(post => (
-                                        <div key={post.id} className="relative group">
+                                        <div key={post.id} className="relative group hover:z-[999]">
                                             <motion.div 
-                                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                                className="text-[9px] md:text-[10px] leading-tight font-bold bg-black dark:bg-white text-white dark:text-black p-1 md:p-1.5 rounded-md truncate cursor-pointer shadow-md group-hover:scale-105 transition-transform"
+                                                whileHover={{ scale: 1.08 }}
+                                                className="text-[9px] font-black leading-tight bg-black dark:bg-white text-white dark:text-black p-2 rounded-xl truncate cursor-pointer shadow-xl transition-all active:scale-95"
                                             >
                                                 {post.time} - {post.title}
                                             </motion.div>
                                             
                                             {/* THE FLOATING HOVER TOOLTIP */}
-                                            <div className="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-48 p-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 pointer-events-none transition-all duration-200 z-[100] origin-bottom">
-                                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 dark:bg-white rotate-45"></div>
-                                                <p className="font-black text-sm mb-1 leading-tight text-white dark:text-black">{post.title}</p>
-                                                <p className="opacity-70 font-medium text-gray-300 dark:text-gray-600">{post.date} @ {post.time}</p>
-                                                <div className="mt-2 pt-2 border-t border-white/20 dark:border-black/10 flex items-center gap-1 font-bold text-emerald-400 dark:text-emerald-500">
-                                                    <CheckCircle2 size={12} /> {post.status}
+                                            <div className="absolute bottom-[calc(100%+12px)] left-1/2 -translate-x-1/2 w-60 p-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.4)] opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 pointer-events-none transition-all duration-300 z-[999] origin-bottom border border-white/10 dark:border-black/5">
+                                                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 dark:bg-white rotate-45 border-b border-r border-white/10 dark:border-black/5"></div>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                                                    <span className="font-black uppercase tracking-[0.2em] text-[8px] opacity-60">Verified Entry</span>
+                                                </div>
+                                                <p className="font-bold text-sm mb-1 leading-snug">{post.title}</p>
+                                                <p className="opacity-60 font-bold text-[10px] mb-3 tracking-tighter">{post.date} • {post.time}</p>
+                                                <div className="flex items-center gap-2 pt-3 border-t border-white/10 dark:border-black/5">
+                                                    <CheckCircle2 size={14} className="text-emerald-400 dark:text-emerald-500" /> 
+                                                    <span className="font-black text-emerald-400 dark:text-emerald-500 uppercase tracking-widest text-[8px]">Safe to Publish</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -290,15 +293,15 @@ export default function Schedule() {
         </div>
       </div>
 
-      {/* TOAST NOTIFICATION - Safely at bottom-[120px] */}
+      {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toast.show && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-[120px] left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-6 py-4 rounded-full bg-gray-900 dark:bg-white text-white dark:text-black shadow-2xl transition-colors"
+            className="fixed bottom-[120px] left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-8 py-4 rounded-full bg-gray-900 dark:bg-white text-white dark:text-black shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-colors border border-white/10 dark:border-black/5"
           >
             <CheckCircle2 size={20} className="text-emerald-400 dark:text-emerald-500" />
-            <span className="font-bold text-sm">{toast.message}</span>
+            <span className="font-black text-sm tracking-tight">{toast.message}</span>
           </motion.div>
         )}
       </AnimatePresence>
