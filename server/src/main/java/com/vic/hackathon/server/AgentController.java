@@ -191,22 +191,41 @@ public class AgentController {
             }
         }
     } // <-- FIXED: Added the missing closing brace here!
-
-    private ResponseEntity<ProjectResponse> getMockProjectResponse(String title) {
+        private ResponseEntity<ProjectResponse> getMockProjectResponse(String title) {
         ProjectResponse mock = new ProjectResponse();
-        mock.hook = title;
-        mock.sonicDna = "Trending: High-Energy Synth / Lofi";
-        mock.script = "This is a fallback demo script because the AI server timed out! Still looks great for the judges though. 🚀";
+        mock.hook = "The Truth About Tech Event Planning 🤯";
+        mock.sonicDna = "Trending: Fast-paced Lofi Beats / Sigma Male Grindset audio";
+        mock.script = "When the vendor says 'front-print only' 3 days before GDGoC UM Week... 💀 Here is how our FSKTM publicity team handled the ultimate pivot. Save this if you're running a tech event! #UM #FSKTM #TechEvents";
         
-        // Add a mock storyboard row so the table doesn't look empty during a fallback
-        ProjectResponse.StoryboardRow row = new ProjectResponse.StoryboardRow();
-        row.scene = 1;
-        row.visual = "Dynamic tracking shot of creator at desk";
-        row.characterAction = "Typing fast on keyboard";
-        row.wayOfShooting = "Push in medium shot";
-        row.wayOfEditing = "Fast cut";
-        row.dialogue = "You won't believe this workflow hack...";
-        mock.storyboard.add(row);
+        // Scene 1
+        ProjectResponse.StoryboardRow row1 = new ProjectResponse.StoryboardRow();
+        row1.scene = 1;
+        row1.visual = "Close-up on a laptop screen showing a sick 3D pixel art T-shirt design.";
+        row1.characterAction = "Creator points at the screen looking proud.";
+        row1.wayOfShooting = "Push in close-up";
+        row1.wayOfEditing = "Hard cut to next scene";
+        row1.dialogue = "We spent weeks on this back-print design...";
+        mock.storyboard.add(row1);
+
+        // Scene 2
+        ProjectResponse.StoryboardRow row2 = new ProjectResponse.StoryboardRow();
+        row2.scene = 2;
+        row2.visual = "Creator holding phone, looking stressed.";
+        row2.characterAction = "Creator sighs and dramatically rubs temples.";
+        row2.wayOfShooting = "High angle, slightly shaky";
+        row2.wayOfEditing = "Glitch transition";
+        row2.dialogue = "...then the vendor called.";
+        mock.storyboard.add(row2);
+
+        // Scene 3
+        ProjectResponse.StoryboardRow row3 = new ProjectResponse.StoryboardRow();
+        row3.scene = 3;
+        row3.visual = "Time-lapse of moving elements in Canva/CapCut to fit only the front.";
+        row3.characterAction = "Rapid clicking and dragging.";
+        row3.wayOfShooting = "Screen recording / Over-the-shoulder";
+        row3.wayOfEditing = "Speed ramp (fast forward)";
+        row3.dialogue = "Front-print only? Fine. Watch us pivot.";
+        mock.storyboard.add(row3);
         
         return ResponseEntity.ok(mock);
     }
