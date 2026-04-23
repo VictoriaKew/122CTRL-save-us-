@@ -143,6 +143,8 @@ public class AgentController {
 
         System.out.println("🌐 Calling Real ILMU-GLM-5.1 API...");
         
+        System.out.println("🔑 DEBUG KEY CHECK: [" + zaiApiKey + "]");
+        
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         
