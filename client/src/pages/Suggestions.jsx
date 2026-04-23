@@ -191,10 +191,16 @@ export default function Suggestions() {
                             </td>
                             <td className="p-6">
                               <img 
-                                src={`https://image.pollinations.ai/prompt/${encodeURIComponent((row.visual || "scene") + " " + (row.characterAction || "character") + " simple rough pencil storyboard sketch")}?width=160&height=120&nologo=true`} 
-                                alt={`Sketch`} className="w-24 h-16 object-cover rounded-xl shadow-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/50" loading="lazy"
-                                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/160x120/e2e8f0/64748b?text=Generating+Sketch..."; }}
-                              />
+  src={`https://image.pollinations.ai/prompt/${encodeURIComponent(((row.visual || "scene") + " storyboard sketch").substring(0, 150))}?width=160&height=120&nologo=true&seed=${index + 1}`} 
+  alt={`Sketch for Scene ${row.scene || index + 1}`} 
+  className="w-24 h-16 object-cover rounded-xl shadow-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/50" 
+  loading="lazy"
+  onError={(e) => { 
+    e.target.onerror = null; 
+    // Fallback if the AI image completely fails
+    e.target.src = `https://placehold.co/160x120/e2e8f0/64748b?text=Scene+${row.scene || index + 1}`; 
+  }}
+/>
                             </td>
                             <td className="p-6 font-medium text-gray-600 dark:text-gray-300 min-w-[200px] whitespace-normal break-words">{row.characterAction}</td>
                             <td className="p-6 font-medium text-blue-600 dark:text-blue-400 min-w-[200px] whitespace-normal break-words">{row.wayOfShooting}</td>
