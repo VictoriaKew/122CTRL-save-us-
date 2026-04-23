@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Settings, Bell, User, Wand2, ShieldCheck, CalendarClock, Home, Sun, Moon } from 'lucide-react';
+import { Settings, Bell, User, Wand2, CalendarClock, Home, Sun, Moon } from 'lucide-react';
 import logo from './assets/buddy.png'; 
 import { ThemeProvider, useTheme } from './context/ThemeContext'; 
 
@@ -9,7 +9,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Main from './pages/Main';
 import Suggestions from './pages/Suggestions';
-import Compliance from './pages/Compliance';
+// 🔥 DELETED the Compliance import!
 import Schedule from './pages/Schedule';
 import Success from './pages/Success';
 
@@ -18,13 +18,12 @@ function DashboardLayout() {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme(); 
   
-  // 🔥 FIXED: Start with a completely empty schedule! No more FSKTM mock data!
   const [scheduledPosts, setScheduledPosts] = useState([]);
 
+  // 🔥 DELETED the Compliance/Safety button from the bottom nav!
   const navItems = [
     { path: '/app', label: 'Create', icon: <Wand2 size={18} /> },
     { path: '/suggestions', label: 'Suggest', icon: <Home size={18} /> },
-    { path: '/compliance', label: 'Safety', icon: <ShieldCheck size={18} /> },
     { path: '/schedule', label: 'Schedule', icon: <CalendarClock size={18} /> }
   ];
 
@@ -126,7 +125,7 @@ export default function App() {
           <Route element={<DashboardLayout />}>
             <Route path="/app" element={<Main />} />
             <Route path="/suggestions" element={<Suggestions />} />
-            <Route path="/compliance" element={<Compliance />} />
+            {/* 🔥 DELETED the Route for Compliance! */}
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/success" element={<Success />} />
           </Route>

@@ -2,7 +2,7 @@ package com.vic.hackathon.server;
 import java.util.List;
 
 public class ComplianceResponse {
-    public int score;
+    // 🔥 SCORE COMPLETELY REMOVED
     public List<ComplianceIssue> issues;
 
     // REQUIRED: Empty constructor
