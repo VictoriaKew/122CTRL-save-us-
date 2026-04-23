@@ -1,23 +1,30 @@
-import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Hash, FileText, Download, Image as ImageIcon, Loader2, CheckCircle2 } from 'lucide-react';
 
 export default function Suggestions() {
   const location = useLocation();
-  const passedData = location.state?.strategyData || JSON.parse(sessionStorage.getItem('lastBuddyProject')) || {};
+  const navigate = useNavigate(); // 🔥 Added for the success page routing
   
-  const [projectData, setProjectData] = useState({
-    hook: passedData.hook || "The Ultimate Workflow Hack for 2026",
-    sonicDna: passedData.sonicDna || "Trending: Lofi Study Beats / Acoustic Pop",
-    script: passedData.script || "Stop scrolling! If you want to survive this semester, save this video. 🚀 #Workflow #ProductivityHacks #Tech",
-    storyboard: passedData.storyboard || [
-      { id: 1, scene: "Office / Desk", character: "Subject sitting", shooting: "Wide angle, static", editing: "Fade in", dialogue: "(Background music starts)", duration: "3s" },
-      { id: 2, scene: "Close up on face", character: "Subject looking at camera", shooting: "Push in close-up", editing: "Hard cut", dialogue: "\"Stop scrolling, I have a secret.\"", duration: "2s" },
-      { id: 3, scene: "Screen capture", character: "Mouse moving on screen", shooting: "Screen recording", editing: "Zoom into screen", dialogue: "\"Here is exactly how this works...\"", duration: "5s" },
-      { id: 4, scene: "Office / Desk", character: "Subject smiling", shooting: "Medium shot", editing: "Whip pan out", dialogue: "\"Save this for later!\"", duration: "3s" }
-    ]
+  // 1. Strictly look for new data first, then check memory.
+  const savedMemory = JSON.parse(sessionStorage.getItem('lastBuddyProject'));
+  const passedData = location.state?.strategyData || savedMemory;
+
+  // 2. Initialize state with REAL data, or empty defaults (NO hardcoded placeholders!)
+  const [projectData, setProjectData] = useState(passedData || {
+    hook: "No project loaded. Go back and generate one! ⚠️",
+    sonicDna: "-",
+    script: "",
+    storyboard: []
   });
+
+  // 🔥 THE MEMORY FIX: Auto-save to session storage whenever data changes!
+  useEffect(() => {
+    if (projectData && projectData.hook !== "No project loaded. Go back and generate one! ⚠️") {
+      sessionStorage.setItem('lastBuddyProject', JSON.stringify(projectData));
+    }
+  }, [projectData]);
 
   const [isRefining, setIsRefining] = useState(false);
   const [customThought, setCustomThought] = useState("");
@@ -42,7 +49,6 @@ export default function Suggestions() {
         })
       });
 
-      // Added strict error parsing so you can debug easily!
       if (!response.ok) {
           const errorData = await response.text();
           throw new Error(`Server ${response.status}: ${errorData}`);
@@ -58,7 +64,6 @@ export default function Suggestions() {
       console.error("❌ Refinement Error:", error);
       triggerToast("Connection failed. Using local backup. ⚠️");
       
-      // Awesome hackathon fallback!
       setProjectData({
         ...projectData,
         script: `(Local Edit: ${instruction})\n\n` + projectData.script
@@ -70,8 +75,8 @@ export default function Suggestions() {
 
   const downloadActorScript = () => {
     let scriptContent = `TITLE: ${projectData.hook}\n\n--- MAIN SCRIPT / CAPTION ---\n${projectData.script}\n\n--- STORYBOARD DIALOGUE ---\n\n`;
-    projectData.storyboard.forEach(row => {
-      scriptContent += `SCENE ${row.id}: ${row.scene}\nACTION: ${row.character}\nDIALOGUE: ${row.dialogue}\n\n`;
+    projectData.storyboard.forEach((row, index) => {
+      scriptContent += `SCENE ${row.scene || index + 1}: ${row.visual}\nACTION: ${row.characterAction}\nDIALOGUE: ${row.dialogue}\n\n`;
     });
     const blob = new Blob([scriptContent], { type: 'text/plain;charset=utf-8;' });
     const link = document.createElement("a");
@@ -82,11 +87,11 @@ export default function Suggestions() {
   };
 
   const downloadDirectorStoryboard = () => {
-    const headers = ["Scene No.", "Location", "Character/Action", "Way of Shooting", "Way of Editing", "Dialogue", "Time"];
+    const headers = ["Scene No.", "Location", "Character/Action", "Way of Shooting", "Way of Editing", "Dialogue"];
     const csvContent = [
       headers.join(","), 
-      ...projectData.storyboard.map(row => 
-        [row.id, `"${row.scene}"`, `"${row.character}"`, `"${row.shooting}"`, `"${row.editing}"`, `"${row.dialogue}"`, row.duration].join(",")
+      ...projectData.storyboard.map((row, index) => 
+        [row.scene || index + 1, `"${row.visual}"`, `"${row.characterAction}"`, `"${row.wayOfShooting}"`, `"${row.wayOfEditing}"`, `"${row.dialogue}"`].join(",")
       )
     ].join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -126,16 +131,20 @@ export default function Suggestions() {
       <h2 className="text-sm font-bold tracking-[0.2em] uppercase text-gray-400 dark:text-gray-500 mb-6 ml-2 transition-colors">Content Suggestion</h2>
       
       <div className="flex overflow-x-auto gap-6 pb-6 w-full hide-scrollbar">
-        <div className="min-w-[320px] md:min-w-[400px] bg-white/60 dark:bg-white/[0.03] backdrop-blur-2xl border border-white dark:border-white/10 shadow-lg rounded-[32px] p-8 shrink-0 transition-all duration-500">
+        <div className="min-w-[320px] md:min-w-[400px] flex-1 bg-white/60 dark:bg-white/[0.03] backdrop-blur-2xl border border-white dark:border-white/10 shadow-lg rounded-[32px] p-8 shrink-0 transition-all duration-500">
           <div className="w-12 h-12 bg-blue-100 dark:bg-blue-500/20 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6"><FileText size={24} /></div>
           <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">The Hook / Title</h3>
-          <p className={`text-2xl font-bold text-[#1d1d1f] dark:text-[#f5f5f7] leading-snug transition-opacity duration-300 ${isRefining ? 'opacity-30' : 'opacity-100'}`}>{projectData.hook}</p>
+          <p className={`text-2xl font-bold text-[#1d1d1f] dark:text-[#f5f5f7] leading-snug whitespace-normal break-words transition-opacity duration-300 ${isRefining ? 'opacity-30' : 'opacity-100'}`}>
+            {projectData.hook}
+          </p>
         </div>
 
-        <div className="min-w-[320px] md:min-w-[400px] bg-white/60 dark:bg-white/[0.03] backdrop-blur-2xl border border-white dark:border-white/10 shadow-lg rounded-[32px] p-8 shrink-0 transition-all duration-500">
+        <div className="min-w-[320px] md:min-w-[400px] flex-1 bg-white/60 dark:bg-white/[0.03] backdrop-blur-2xl border border-white dark:border-white/10 shadow-lg rounded-[32px] p-8 shrink-0 transition-all duration-500">
           <div className="w-12 h-12 bg-purple-100 dark:bg-purple-500/20 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6"><Music size={24} /></div>
           <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">Trending Audio</h3>
-          <p className={`text-2xl font-bold text-[#1d1d1f] dark:text-[#f5f5f7] leading-snug transition-opacity duration-300 ${isRefining ? 'opacity-30' : 'opacity-100'}`}>{projectData.sonicDna}</p>
+          <p className={`text-2xl font-bold text-[#1d1d1f] dark:text-[#f5f5f7] leading-snug whitespace-normal break-words transition-opacity duration-300 ${isRefining ? 'opacity-30' : 'opacity-100'}`}>
+            {projectData.sonicDna}
+          </p>
         </div>
 
         <div className="min-w-[320px] md:min-w-[450px] bg-white/60 dark:bg-white/[0.03] backdrop-blur-2xl border border-white dark:border-white/10 shadow-lg rounded-[32px] p-6 snap-start shrink-0 flex flex-col relative overflow-hidden transition-all duration-500">
@@ -226,29 +235,31 @@ export default function Suggestions() {
                   animate="visible"
                   className="text-sm text-[#1d1d1f] dark:text-gray-300"
                 >
-                    {projectData.storyboard.map((row) => (
+                    {projectData.storyboard?.map((row, index) => (
                         <motion.tr 
                           variants={rowVariants}
-                          key={row.id} 
+                          key={index} 
                           className="border-b border-gray-100 dark:border-white/10 last:border-0 hover:bg-white/60 dark:hover:bg-white/5 transition-colors"
                         >
-                            <td className="p-6 font-bold whitespace-nowrap text-gray-900 dark:text-white">
-                              <span className="bg-blue-100/50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-xs mr-3">{row.id}</span>
-                              {row.scene}
+                            <td className="p-6 font-bold text-gray-900 dark:text-white min-w-[200px] whitespace-normal break-words">
+                              <div className="flex items-start gap-3">
+                                <span className="bg-blue-100/50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-xs shrink-0 mt-0.5">{row.scene || index + 1}</span>
+                                <span>{row.visual}</span>
+                              </div>
                             </td>
                             <td className="p-6">
                               <img 
-                                src={`https://image.pollinations.ai/prompt/${encodeURIComponent(row.scene + " " + row.character + " simple rough pencil storyboard sketch")}?width=160&height=120&nologo=true`} 
-                                alt={`Sketch for scene ${row.id}`}
+                                src={`https://image.pollinations.ai/prompt/${encodeURIComponent((row.visual || "scene") + " " + (row.characterAction || "character") + " simple rough pencil storyboard sketch")}?width=160&height=120&nologo=true`} 
+                                alt={`Sketch for scene ${row.scene || index + 1}`}
                                 className="w-24 h-16 object-cover rounded-xl shadow-sm border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/50"
                                 loading="lazy"
                                 onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/160x120/e2e8f0/64748b?text=Generating+Sketch..."; }}
                               />
                             </td>
-                            <td className="p-6 font-medium text-gray-600 dark:text-gray-300 min-w-[150px]">{row.character}</td>
-                            <td className="p-6 font-medium text-blue-600 dark:text-blue-400 min-w-[150px]">{row.shooting}</td>
-                            <td className="p-6 font-medium text-purple-600 dark:text-purple-400 min-w-[150px]">{row.editing}</td>
-                            <td className="p-6 italic text-gray-500 dark:text-gray-400 leading-relaxed min-w-[300px]">"{row.dialogue}"</td>
+                            <td className="p-6 font-medium text-gray-600 dark:text-gray-300 min-w-[200px] whitespace-normal break-words">{row.characterAction}</td>
+                            <td className="p-6 font-medium text-blue-600 dark:text-blue-400 min-w-[200px] whitespace-normal break-words">{row.wayOfShooting}</td>
+                            <td className="p-6 font-medium text-purple-600 dark:text-purple-400 min-w-[200px] whitespace-normal break-words">{row.wayOfEditing}</td>
+                            <td className="p-6 italic text-gray-500 dark:text-gray-400 leading-relaxed min-w-[300px] whitespace-normal break-words">"{row.dialogue}"</td>
                         </motion.tr>
                     ))}
                 </motion.tbody>
@@ -274,14 +285,24 @@ export default function Suggestions() {
         </div>
       </div>
 
-      {/* In Suggestions.jsx */}
+      {/* 🔥 The Final Success Button! */}
+      <div className="mt-12 flex justify-center w-full pb-12">
+        <button 
+          onClick={() => {
+            navigate('/success'); 
+          }}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-10 rounded-full transition-all shadow-lg hover:scale-105 flex items-center gap-2"
+        >
+          <CheckCircle2 size={20} /> Publish & Finish Project 🎉
+        </button>
+      </div>
+
 <AnimatePresence>
   {toast.show && (
     <motion.div
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.9 }}
-      // UPDATE THIS LINE BELOW:
       className="fixed bottom-[1px] md:bottom-120 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-6 py-4 rounded-full bg-gray-900 dark:bg-white text-white dark:text-black shadow-2xl transition-colors"
     >
       <CheckCircle2 size={20} className="text-emerald-400 dark:text-emerald-500" />

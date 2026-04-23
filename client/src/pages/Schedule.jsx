@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { Calendar as CalendarIcon, Clock, CheckCircle2, Sparkles, Globe2, ArrowRight, Wand2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle2, Sparkles, Globe2, ArrowRight, Wand2, ArrowLeft } from 'lucide-react';
 
 export default function Schedule() {
   const navigate = useNavigate();
@@ -49,10 +49,11 @@ export default function Schedule() {
   const suggestedTimeStr = "19:00";
   const formattedSuggestedDisplay = `${tomorrow.toLocaleString('default', { month: 'short' })} ${tomorrow.getDate()}, ${currentYear} @ 7:00 PM`;
 
-  // --- LOAD PROJECT FROM STORAGE ---
+  // --- LOAD PROJECT FROM STORAGE (WITH PLACEHOLDER BLOCKER) ---
   useEffect(() => {
     const stored = JSON.parse(sessionStorage.getItem('lastBuddyProject'));
-    if (stored && stored.hook) {
+    // Only load if it exists AND is not our empty state warning string
+    if (stored && stored.hook && !stored.hook.includes("No project loaded")) {
       setPendingProject(stored);
     }
   }, []);
@@ -60,15 +61,6 @@ export default function Schedule() {
   const triggerToast = (message) => {
     setToast({ show: true, message });
     setTimeout(() => setToast({ show: false, message: "" }), 3000);
-  };
-
-  // --- HACKATHON SAFETY NET ---
-  const loadDemoProject = () => {
-      setPendingProject({
-          hook: "Buddy AI: Viral Content Hack 🚀",
-          script: "In this video, I'll show you how we used ILMU-GLM-5.1 to build a content scheduler in under 24 hours!",
-      });
-      triggerToast("Loaded Demo Project!");
   };
 
   const handleSchedulePost = () => {
@@ -102,6 +94,7 @@ export default function Schedule() {
     
     setScheduledPosts(updatedSchedule);
     setPendingProject(null); 
+    // Clear it so they can't schedule it twice!
     sessionStorage.removeItem('lastBuddyProject'); 
     triggerToast("✨ Project Published to Grid!");
   };
@@ -134,7 +127,7 @@ export default function Schedule() {
             onClick={() => navigate('/success')}
             className="bg-black dark:bg-white text-white dark:text-black px-10 py-4 rounded-full font-black text-sm flex items-center gap-2 hover:scale-105 transition-all shadow-2xl shrink-0"
         >
-            Launch Workspace <ArrowRight size={18} />
+            Publish & Finish 🎉 <ArrowRight size={18} />
         </button>
       </header>
 
@@ -207,11 +200,12 @@ export default function Schedule() {
                         <h4 className="text-xl font-bold text-gray-400 dark:text-gray-500 mb-2">Workspace Empty</h4>
                         <p className="text-xs text-gray-400 dark:text-gray-600 mb-8 max-w-[200px] leading-relaxed">Your creative queue is currently empty. Generate a new strategy to begin.</p>
                         
+                        {/* 🔥 CHANGED THIS TO ROUTE USER BACK TO START */}
                         <button 
-                            onClick={loadDemoProject}
+                            onClick={() => navigate('/')} // Assuming '/' is your generator page
                             className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 rounded-xl text-xs font-black text-gray-600 dark:text-gray-300 transition-all shadow-sm active:scale-95"
                         >
-                            <Wand2 size={14} /> Use Demo Data
+                            <ArrowLeft size={14} /> Back to Phase 1
                         </button>
                     </motion.div>
                 )}

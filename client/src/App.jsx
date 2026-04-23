@@ -18,17 +18,8 @@ function DashboardLayout() {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme(); 
   
-  // Dynamic Mock Data
-  const [scheduledPosts, setScheduledPosts] = useState(() => {
-    const today = new Date();
-    const tmrw = new Date(today); tmrw.setDate(today.getDate() + 1);
-    const getDayName = (d) => d.toLocaleString('en-US', { weekday: 'short' });
-    const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-    return [
-      { id: 1, title: "3 Tips for Surviving FSKTM Finals", date: formatDate(tmrw), dayNum: getDayName(tmrw) }
-    ];
-  });
+  // 🔥 FIXED: Start with a completely empty schedule! No more FSKTM mock data!
+  const [scheduledPosts, setScheduledPosts] = useState([]);
 
   const navItems = [
     { path: '/app', label: 'Create', icon: <Wand2 size={18} /> },
