@@ -122,12 +122,17 @@ public class AgentController {
     private ResponseEntity<?> callZaiApi(String prompt, String type) {
         if (isKeyMissing()) return getMockProjectResponse("MOCK Mode");
 
-        System.out.println("🌐 Calling Real ILMU-GLM-5.1 API...");
+       System.out.println("🌐 Calling Real ILMU-GLM-5.1 API...");
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("x-api-key", zaiApiKey); // Guide requirement for Anthropic-compatible format [cite: 1, 306]
-        headers.set("anthropic-version", "2023-06-01"); 
+        
+        // 🚨 HACKATHON OVERRIDE: Delete the 'zaiApiKey' variable.
+        // Paste your literal key string right here inside the quotes.
+        // Example: headers.set("x-api-key", "sk-ant-ilmu-12345ABCDE...");
+        headers.set("x-api-key", "sk-e920fff60f267961643c18d6315a8f683f0d76de6f42dcce"); 
+        
+        headers.set("anthropic-version", "2023-06-01");
 
         Map<String, Object> body = new HashMap<>();
         body.put("model", "ilmu-glm-5.1"); // Exact model name from handbook [cite: 1, 9]
