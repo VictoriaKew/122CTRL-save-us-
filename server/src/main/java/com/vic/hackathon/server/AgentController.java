@@ -87,7 +87,7 @@ public class AgentController {
     }
 
     // ==========================================
-    // PHASE 03: COMPLIANCE (Isolated Script)
+    // PHASE 03: COMPLIANCE (Isolated Script & No Score)
     // ==========================================
     @PostMapping(value = "/compliance", produces = "application/json")
     public ResponseEntity<?> checkCompliance(@RequestBody Map<String, Object> request) {
@@ -98,19 +98,16 @@ public class AgentController {
 
         if (isKeyMissing()) return getMockComplianceResponse();
 
-        // 🔥 CRITICAL FIX PROMPT: Used XML-like tags to isolate user data from instructions
         String systemPrompt = "Act as a strict Trust & Safety Policy AI for " + platforms.toString() + ". " +
-            "Analyze the script content provided between the <SCRIPT_CONTENT> tags for potential violations against community guidelines.\n\n" +
+            "Analyze the script content provided between the <SCRIPT_CONTENT> tags.\n\n" +
             "<SCRIPT_CONTENT>\n" + script + "\n</SCRIPT_CONTENT>\n\n" +
             "CRITICAL RULES:\n" +
-            "1. Analyze ONLY the content inside the tags above.\n" +
-            "2. If the tags are empty or no content is found inside them, return score 0 and issue type 'error' stating 'No caption/script content provided'. Do not use demo data.\n" +
-            "3. If content exists, generate at least 2 relevant platform-specific safety reminders or warnings.\n" +
-            "4. Return ONLY raw JSON in this format:\n" +
+            "1. Generate 3 to 5 strict platform-specific safety reminders, terms and conditions, or algorithm restrictions based ON THE PLATFORMS CHOSEN (e.g., TikTok commercial audio rules, YouTube Shorts pacing algorithms).\n" +
+            "2. DO NOT GENERATE A SCORE. Only return the issues/reminders.\n" +
+            "3. Return ONLY raw JSON in this format:\n" +
             "{\n" +
-            "  \"score\": 90,\n" +
             "  \"issues\": [\n" +
-            "    { \"type\": \"warning\", \"platform\": \"TikTok\", \"title\": \"Audience Warning\", \"desc\": \"Reminder about safety standard\" }\n" +
+            "    { \"type\": \"warning\", \"platform\": \"TikTok\", \"title\": \"Commercial Audio Limit\", \"desc\": \"Reminder: Unoriginal audio longer than 60s will be muted by TikTok.\" }\n" +
             "  ]\n" +
             "}";
 
@@ -142,7 +139,6 @@ public class AgentController {
         if (isKeyMissing()) return getMockProjectResponse("MOCK Mode");
 
         System.out.println("🌐 Calling Real ILMU-GLM-5.1 API...");
-        
         System.out.println("🔑 DEBUG KEY CHECK: [" + zaiApiKey + "]");
         
         HttpHeaders headers = new HttpHeaders();
@@ -154,7 +150,7 @@ public class AgentController {
         Map<String, Object> body = new HashMap<>();
         body.put("model", "ilmu-glm-5.1");
         body.put("messages", List.of(Map.of("role", "user", "content", prompt)));
-        body.put("max_tokens", 4096);
+        body.put("max_tokens", 2048);
         // Turn temperature down slightly to make JSON more stable
         body.put("temperature", 0.3); 
 
@@ -184,26 +180,45 @@ public class AgentController {
             if (e instanceof HttpStatusCodeException) {
                 System.err.println("Server Said: " + ((HttpStatusCodeException)e).getResponseBodyAsString());
             }
-            return ResponseEntity.status(500).body(Map.of("error", "AI messed up the data structure. Please try regenerating."));
+            
+            // 🔥 HACKATHON SAFETY NET: If the API times out (504) or fails, return mock data so the UI doesn't break!
+            System.out.println("⚠️ ILMU API failed. Triggering Emergency Demo Fallback Data.");
+            
+            if (type.equals("compliance")) {
+                return getMockComplianceResponse();
+            } else {
+                return getMockProjectResponse("Viral Hackathon Strategy 🚀");
+            }
         }
-    }
+    } // <-- FIXED: Added the missing closing brace here!
 
     private ResponseEntity<ProjectResponse> getMockProjectResponse(String title) {
         ProjectResponse mock = new ProjectResponse();
         mock.hook = title;
-        mock.script = "Mock mode is active because your API key is missing from application.properties.";
+        mock.sonicDna = "Trending: High-Energy Synth / Lofi";
+        mock.script = "This is a fallback demo script because the AI server timed out! Still looks great for the judges though. 🚀";
+        
+        // Add a mock storyboard row so the table doesn't look empty during a fallback
+        ProjectResponse.StoryboardRow row = new ProjectResponse.StoryboardRow();
+        row.scene = 1;
+        row.visual = "Dynamic tracking shot of creator at desk";
+        row.characterAction = "Typing fast on keyboard";
+        row.wayOfShooting = "Push in medium shot";
+        row.wayOfEditing = "Fast cut";
+        row.dialogue = "You won't believe this workflow hack...";
+        mock.storyboard.add(row);
+        
         return ResponseEntity.ok(mock);
     }
 
     private ResponseEntity<ComplianceResponse> getMockComplianceResponse() {
         ComplianceResponse mock = new ComplianceResponse();
-        mock.score = 92; // The infamous 92 from earlier!
         mock.issues = new ArrayList<>();
         ComplianceResponse.ComplianceIssue issue = new ComplianceResponse.ComplianceIssue();
-        issue.type = "info";
-        issue.platform = "All";
-        issue.title = "Mock Compliance";
-        issue.desc = "Backend is running in mock mode. Check API key.";
+        issue.type = "warning";
+        issue.platform = "TikTok";
+        issue.title = "Mock Compliance Warning";
+        issue.desc = "Backend API timed out (504). This is the emergency demo data keeping your UI alive!";
         mock.issues.add(issue);
         return ResponseEntity.ok(mock);
     }
@@ -230,17 +245,4 @@ class ProjectResponse {
         public String dialogue;
     }
 }
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-class ComplianceResponse {
-    public int score;
-    public List<ComplianceIssue> issues = new ArrayList<>();
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ComplianceIssue {
-        public String type; 
-        public String platform;
-        public String title;
-        public String desc;
-    }
-}
+// 🔥 ComplianceResponse class removed from here to prevent Duplicate Class errors!
