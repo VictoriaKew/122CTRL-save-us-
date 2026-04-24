@@ -45,6 +45,14 @@ export default function Main() {
   const handleStart = async () => {
     setIsAnalyzing(true);
 
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    alert("Please log in to save your project!");
+    setIsAnalyzing(false);
+    return;
+  }
+
     const finalPrompt = contentType === 'Auto' 
       ? "Analyze my style and suggest the best viral topic for my next video." 
       : `Create an engaging ${contentType} video specifically about: ${subject}`;
@@ -57,6 +65,7 @@ export default function Main() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
+            user_id: user.id, 
             prompt: finalPrompt,
             links: links 
         }) 
@@ -78,7 +87,26 @@ export default function Main() {
       alert("Buddy's brain is offline! Check your Java terminal.\nError: " + error.message);
       setIsAnalyzing(false); 
     }
+
+
+// Step 2: Send to Java
+const handleSaveProject = async (projectData) => {
+  await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/save-project`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: user.id, // Linking the current user
+      title: projectData.hook,
+      content_json: JSON.stringify(projectData), // Stores hook, script, storyboard
+      url_reference_1: links[0],
+      url_reference_2: links[1],
+      url_reference_3: links[2],
+      platform: "multiple"
+    })
+  });
+};
   };
+
   
   return (
     <motion.main 

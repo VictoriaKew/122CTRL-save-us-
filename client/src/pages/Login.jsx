@@ -16,6 +16,10 @@ export default function Login() {
   if (error) {
     alert("Login failed: " + error.message);
   } else {
+    // 1. Get the session token
+    const session = data.session;
+    const token = session.access_token;
+
     console.log("Logged in user ID:", data.user.id);
     navigate('/app');
   }

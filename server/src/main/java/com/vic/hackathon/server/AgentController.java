@@ -252,23 +252,55 @@ private boolean isKeyMissing() {
     // ==========================================
     @PostMapping("/sync-user")
 public ResponseEntity<?> syncUser(@RequestBody Map<String, Object> userData) {
-    // Check your IDE console for this! 
-    // If password_hash is null here, the problem is in the React code.
     System.out.println("📥 DATA RECEIVED BY JAVA: " + userData); 
+
+    Map<String, Object> supabaseUserData = new HashMap<>();
+    supabaseUserData.put("user_id", userData.get("user_id"));
+    supabaseUserData.put("email", userData.get("email"));
+    supabaseUserData.put("username", userData.get("username"));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.set("apikey", supabaseKey);
     headers.set("Authorization", "Bearer " + supabaseKey);
+    // This allows overwriting if the user already exists
+    headers.set("Prefer", "resolution=merge-duplicates"); 
 
-    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(userData, headers);
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(supabaseUserData, headers);
     
     try {
         String url = supabaseUrl.trim() + "/rest/v1/user_info";
-        return restTemplate.postForEntity(url, entity, String.class);
+        restTemplate.postForEntity(url, entity, String.class);
+        
+        // FIX: Always return a valid JSON object so React doesn't crash
+        return ResponseEntity.ok(Map.of("message", "User synced successfully"));
+        
     } catch (org.springframework.web.client.HttpStatusCodeException e) {
         System.err.println("🔥 SUPABASE ERROR: " + e.getResponseBodyAsString());
         return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+    }
+}
+
+@PostMapping("/save-project")
+public ResponseEntity<?> saveProject(@RequestBody Map<String, Object> payload) {
+    // 1. Prepare Headers for Supabase
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.set("apikey", supabaseKey);
+    headers.set("Authorization", "Bearer " + supabaseKey);
+
+    // 2. The payload matches your table columns
+    // payload contains: user_id, title, content_json, etc.
+    HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+
+    try {
+        String url = supabaseUrl.trim() + "/rest/v1/projects";
+        restTemplate.postForEntity(url, entity, String.class);
+        return ResponseEntity.ok(Map.of("message", "Project linked to user successfully"));
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("Save failed: " + e.getMessage());
     }
 }
 }
