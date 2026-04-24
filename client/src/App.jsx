@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Settings, Bell, User, Wand2, CalendarClock, Home, Sun, Moon } from 'lucide-react';
 import logo from './assets/buddy.png'; 
@@ -9,50 +9,140 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Main from './pages/Main';
 import Suggestions from './pages/Suggestions';
-// 🔥 DELETED the Compliance import!
 import Schedule from './pages/Schedule';
 import Success from './pages/Success';
+
+import { createClient } from '@supabase/supabase-js';
+
+// --- INITIALIZE SUPABASE ---
+const supabaseUrl = 'https://fotkonztoknosscvjnbc.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvdGtvbnp0b2tub3NzY3ZqbmJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NzA5ODUsImV4cCI6MjA5MjQ0Njk4NX0.xt9qgixJjhV6ItrQTZuH_N-wbplGDplYIfg3lEexPt4';
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme(); 
-  
+  const [history, setHistory] = useState([]);
   const [scheduledPosts, setScheduledPosts] = useState([]);
 
-  // 🔥 DELETED the Compliance/Safety button from the bottom nav!
+  // --- NEW: NOTIFICATION STATES ---
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+
   const navItems = [
     { path: '/app', label: 'Create', icon: <Wand2 size={18} /> },
     { path: '/suggestions', label: 'Suggest', icon: <Home size={18} /> },
     { path: '/schedule', label: 'Schedule', icon: <CalendarClock size={18} /> }
   ];
 
+  // --- FETCH HISTORY ON LOAD ---
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, hook, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching history:', error);
+      } else {
+        setHistory(data || []);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  // --- NEW: FETCH NOTIFICATIONS (Scheduled posts due now) ---
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('scheduled_posts')
+        .select('*, projects(hook)')
+        .eq('status', 'pending')
+        .lte('publish_time', now); // Gets posts whose time has already passed or is exactly now
+
+      if (!error) {
+        setNotifications(data || []);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  // --- LOAD EXISTING PROJECT FROM HISTORY ---
+  const loadProject = async (projectId) => {
+    try {
+      const { data: project, error: pError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', projectId)
+        .single();
+
+      if (pError) throw pError;
+
+      const { data: scenes, error: sError } = await supabase
+        .from('storyboard_scenes')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('scene_number', { ascending: true });
+
+      if (sError) throw sError;
+
+      const fullProject = {
+        id:project.id,
+        hook: project.hook,
+        sonicDna: project.sonic_dna,
+        script: project.script,
+        storyboard: scenes.map(s => ({
+          scene: s.scene_number,
+          visual: s.visual,
+          characterAction: s.character_action,
+          wayOfShooting: s.shooting_style,
+          wayOfEditing: s.editing_style,
+          dialogue: s.dialogue
+        }))
+      };
+
+      sessionStorage.setItem('lastBuddyProject', JSON.stringify(fullProject));
+      navigate('/suggestions');
+    } catch (err) {
+      console.error("Failed to load project:", err);
+      alert("Buddy couldn't retrieve that project.");
+    }
+  };
+
   return (
     <div className="flex h-screen w-full relative overflow-hidden font-sans text-[#1d1d1f] dark:text-[#f5f5f7] bg-[#f8f9fb] dark:bg-[#000000] transition-colors duration-500">
       
-      {/* THE GLOWING ORB BACKGROUND */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[1000px] max-h-[1000px] bg-gradient-to-tr from-purple-500 via-blue-400 to-indigo-400 dark:from-fuchsia-600 dark:via-blue-600 dark:to-purple-500 rounded-full blur-[140px] opacity-20 dark:opacity-30 pointer-events-none z-0 transition-all duration-500"></div>
 
-      {/* SIDEBAR: Glass Panel (ONLY ONE HERE) */}
+      {/* SIDEBAR */}
       <aside className="w-72 bg-white/70 dark:bg-[#0a0a0c]/40 backdrop-blur-3xl border-r border-white/40 dark:border-white/5 hidden md:flex flex-col p-8 z-20 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] dark:shadow-[20px_0_40px_-20px_rgba(0,0,0,0.4)] transition-all duration-500">
         <div className="flex items-center gap-3 mb-12">
             <img src={logo} alt="Logo" className="w-12 h-12 drop-shadow-md" />
             <h2 className="text-2xl font-black tracking-tighter">Buddy.</h2>
         </div>
         
-        <div className="flex-1">
-          <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-6">Content Pipeline</h3>
-          <ul className="space-y-4">
-            {scheduledPosts.length === 0 ? (
-                <li className="text-sm font-medium text-gray-400 dark:text-gray-600 italic px-2">No scheduled posts</li>
+        <div className="flex-1 overflow-y-auto hide-scrollbar">
+          <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-6">Past Strategies</h3>
+          <ul className="space-y-2">
+            {history.length === 0 ? (
+              <li className="text-xs text-gray-400 italic px-2">No history yet...</li>
             ) : (
-                scheduledPosts.map((post, idx) => (
-                    <li key={idx} className="text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-3 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-default group">
-                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)] shrink-0 group-hover:scale-125 transition-transform"></div>
-                        <span className="truncate flex-1">{post.title}</span> 
-                        <span className="text-[10px] opacity-40 font-black shrink-0">({post.dayNum})</span>
-                    </li>
-                ))
+              history.map((item) => (
+                <li 
+                  key={item.id} 
+                  onClick={() => loadProject(item.id)}
+                  className="text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-3 p-3 rounded-xl hover:bg-blue-500/10 hover:text-blue-600 cursor-pointer transition-all group border border-transparent hover:border-blue-500/20"
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>
+                  <span className="truncate flex-1 text-xs">{item.hook}</span>
+                </li>
+              ))
             )}
           </ul>
         </div>
@@ -71,16 +161,63 @@ function DashboardLayout() {
       </aside>
 
       <div className="flex-1 flex flex-col relative h-full z-10">
-        {/* HEADER: Tinted Glass Top Bar */}
+        {/* HEADER WITH NOTIFICATIONS */}
         <header className="h-20 bg-white/40 dark:bg-[#0a0a0c]/20 backdrop-blur-md border-b border-white/40 dark:border-white/5 flex items-center justify-end px-10 z-20 transition-all duration-500">
           <div className="flex items-center gap-6 text-gray-500 dark:text-gray-400">
             <button onClick={toggleTheme} className="hover:text-black dark:hover:text-white transition-all p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full">
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
-            <button className="hover:text-black dark:hover:text-white transition-all relative">
+            
+            {/* NOTIFICATION SECTION */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifPanel(!showNotifPanel)}
+                className={`hover:text-black dark:hover:text-white transition-all relative p-2 rounded-full ${showNotifPanel ? 'bg-black/5 dark:bg-white/5' : ''}`}
+              >
                 <Bell size={20} />
-                {scheduledPosts.length > 0 && <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-[#f8f9fb] dark:border-black"></span>}
-            </button>
+                {notifications.length > 0 && (
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#f8f9fb] dark:border-black animate-pulse"></span>
+                )}
+              </button>
+
+              {/* DROPDOWN PANEL */}
+              {showNotifPanel && (
+                <div className="absolute right-0 mt-4 w-80 bg-white/95 dark:bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[32px] p-6 z-[100] transition-all">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Buddy Reminders</h4>
+                    {notifications.length > 0 && (
+                      <span className="text-[10px] font-bold bg-blue-500 text-white px-2 py-0.5 rounded-full">{notifications.length}</span>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto hide-scrollbar">
+                    {notifications.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <p className="text-xs text-gray-400 italic">All caught up! No pending posts. ☕</p>
+                      </div>
+                    ) : (
+                      notifications.map(n => (
+                        <div key={n.id} className="p-4 bg-white dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 hover:border-blue-500/30 transition-colors">
+                          <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-tight mb-2">
+                            Ready to Post: "{n.projects?.hook || 'Untitled Strategy'}"
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-blue-500 font-black uppercase tracking-widest">{n.platform}</span>
+                            <button 
+                              onClick={() => { navigate('/schedule'); setShowNotifPanel(false); }}
+                              className="text-[9px] font-black text-gray-400 hover:text-blue-500 transition-colors"
+                            >
+                              VIEW
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button className="hover:text-black dark:hover:text-white transition-all"><Settings size={20} /></button>
           </div>
         </header>
@@ -125,7 +262,6 @@ export default function App() {
           <Route element={<DashboardLayout />}>
             <Route path="/app" element={<Main />} />
             <Route path="/suggestions" element={<Suggestions />} />
-            {/* 🔥 DELETED the Route for Compliance! */}
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/success" element={<Success />} />
           </Route>

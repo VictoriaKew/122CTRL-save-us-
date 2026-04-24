@@ -83,7 +83,53 @@ public class AgentController {
             "  ]\n" +
             "}";
 
-        return callZaiApi(systemPrompt, "strategy");
+        return callZaiApi(systemPrompt, "strategy");       
+    }
+
+        private void saveToSupabase(ProjectResponse project) {
+    String supabaseUrl = "https://fotkonztoknosscvjnbc.supabase.co";
+    String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvdGtvbnp0b2tub3NzY3ZqbmJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NzA5ODUsImV4cCI6MjA5MjQ0Njk4NX0.xt9qgixJjhV6ItrQTZuH_N-wbplGDplYIfg3lEexPt4"; // Use Service Role Key to bypass RLS for backend
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("apikey", supabaseKey);
+    headers.set("Authorization", "Bearer " + supabaseKey);
+    headers.set("Content-Type", "application/json");
+    headers.set("Prefer", "return=representation"); // Returns the created ID
+
+    try {
+
+        // 1. Insert Project Header
+        Map<String, Object> projectMap = Map.of(
+        "hook", project.hook,
+        "sonic_dna", project.sonicDna,
+        "script", project.script
+    );
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(projectMap, headers);
+        ResponseEntity<JsonNode> response = restTemplate.postForEntity(supabaseUrl, entity, JsonNode.class);
+        
+        // 2. Get the ID of the project we just created
+        String projectId = response.getBody().get(0).get("id").asText();
+
+        // 3. Insert all Storyboard Scenes
+        String scenesUrl = "https://your-project-ref.supabase.co/rest/v1/storyboard_scenes";
+        List<Map<String, Object>> scenesBatch = project.storyboard.stream().map(row -> {
+            Map<String, Object> scene = new HashMap<>();
+            scene.put("project_id", projectId);
+            scene.put("scene_number", row.scene);
+            scene.put("visual", row.visual);
+            scene.put("character_action", row.characterAction);
+            scene.put("shooting_style", row.wayOfShooting);
+            scene.put("editing_style", row.wayOfEditing);
+            scene.put("dialogue", row.dialogue);
+            return scene;
+        }).collect(Collectors.toList());
+
+        restTemplate.postForEntity(scenesUrl, new HttpEntity<>(scenesBatch, headers), String.class);
+        System.out.println("✅ Data successfully synced to Supabase!");
+
+    } catch (Exception e) {
+        System.err.println("⚠️ Supabase Sync Failed: " + e.getMessage());
+    }
     }
 
     // ==========================================
@@ -172,7 +218,9 @@ public class AgentController {
             if (type.equals("compliance")) {
                 return ResponseEntity.ok(objectMapper.readValue(cleanJson, ComplianceResponse.class));
             } else {
-                return ResponseEntity.ok(objectMapper.readValue(cleanJson, ProjectResponse.class));
+                ProjectResponse aiResponse = objectMapper.readValue(cleanJson, ProjectResponse.class);
+                new Thread(()-> saveToSupabase(aiResponse)).start(); // Save to Supabase asynchronously 
+                return ResponseEntity.ok(aiResponse);
             }
             
         } catch (Exception e) {
@@ -240,8 +288,8 @@ public class AgentController {
         issue.desc = "Backend API timed out (504). This is the emergency demo data keeping your UI alive!";
         mock.issues.add(issue);
         return ResponseEntity.ok(mock);
-    }
 }
+
 
 // ==========================================
 // DATA MODELS (Upgraded to match Frontend)
@@ -265,3 +313,4 @@ class ProjectResponse {
     }
 }
 // 🔥 ComplianceResponse class removed from here to prevent Duplicate Class errors!
+}

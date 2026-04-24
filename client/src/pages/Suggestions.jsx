@@ -111,6 +111,32 @@ export default function Suggestions() {
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15 } } };
   const rowVariants = { hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 100 } } };
 
+  const loadProject = async (projectId) => {
+  // 1. Get project header
+  const { data: project } = await supabase.from('projects').select('*').eq('id', projectId).single();
+  
+  // 2. Get the scenes
+  const { data: scenes } = await supabase.from('storyboard_scenes').select('*').eq('project_id', projectId);
+
+  // 3. Reconstruct the object format Suggestions.jsx expects
+  const fullProject = {
+    hook: project.hook,
+    sonicDna: project.sonic_dna,
+    script: project.script,
+    storyboard: scenes.map(s => ({
+      scene: s.scene_number,
+      visual: s.visual,
+      characterAction: s.character_action,
+      wayOfShooting: s.shooting_style,
+      wayOfEditing: s.editing_style,
+      dialogue: s.dialogue
+    }))
+  };
+
+  // 4. Set memory and go!
+  sessionStorage.setItem('lastBuddyProject', JSON.stringify(fullProject));
+  navigate('/suggestions');
+};
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 md:p-8 mx-auto w-full max-w-[100vw] md:max-w-[calc(100vw-17rem)] flex flex-col pb-48 overflow-hidden relative">
       <header className="mb-12 mt-6">
