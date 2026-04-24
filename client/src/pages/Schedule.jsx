@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { Calendar as CalendarIcon, Clock, CheckCircle2, Sparkles, Globe2, ArrowRight, Wand2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle2, Sparkles, Globe2, ArrowRight, Wand2, ArrowLeft } from 'lucide-react';
+// MOVE IMPORTS TO THE TOP
+import { supabase } from '../App'; 
 
 export default function Schedule() {
   const navigate = useNavigate();
@@ -11,7 +13,7 @@ export default function Schedule() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [toast, setToast] = useState({ show: false, message: "" });
-  const [scheduleMode, setScheduleMode] = useState("auto"); // "auto" or "manual"
+  const [scheduleMode, setScheduleMode] = useState("auto");
 
   // --- REAL-TIME DYNAMIC CALENDAR LOGIC ---
   const [now, setNow] = useState(new Date());
@@ -52,7 +54,7 @@ export default function Schedule() {
   // --- LOAD PROJECT FROM STORAGE ---
   useEffect(() => {
     const stored = JSON.parse(sessionStorage.getItem('lastBuddyProject'));
-    if (stored && stored.hook) {
+    if (stored && stored.hook && !stored.hook.includes("No project loaded")) {
       setPendingProject(stored);
     }
   }, []);
@@ -62,16 +64,8 @@ export default function Schedule() {
     setTimeout(() => setToast({ show: false, message: "" }), 3000);
   };
 
-  // --- HACKATHON SAFETY NET ---
-  const loadDemoProject = () => {
-      setPendingProject({
-          hook: "Buddy AI: Viral Content Hack 🚀",
-          script: "In this video, I'll show you how we used ILMU-GLM-5.1 to build a content scheduler in under 24 hours!",
-      });
-      triggerToast("Loaded Demo Project!");
-  };
-
-  const handleSchedulePost = () => {
+  // --- MODIFIED: NOW SAVES TO SUPABASE & LOCAL STATE ---
+  const handleSchedulePost = async () => {
     let finalDate = selectedDate;
     let finalTime = selectedTime;
 
@@ -85,25 +79,49 @@ export default function Schedule() {
       return;
     }
 
-    const dateObj = new Date(finalDate + "T00:00:00");
-    const dayName = dateObj.toLocaleString('en-US', { weekday: 'short' });
+    try {
+      // 1. Prepare Supabase Data
+      const scheduledTimestamp = new Date(`${finalDate}T${finalTime}`).toISOString();
+      
+      // 2. Insert into Supabase Table
+      const { error } = await supabase
+        .from('scheduled_posts')
+        .insert([
+          {
+            project_id: pendingProject.id, // Ensure your project object has the ID!
+            publish_time: scheduledTimestamp,
+            platform: 'multiple',
+            status: 'pending'
+          }
+        ]);
 
-    const newPost = {
-      id: Date.now(),
-      title: pendingProject.hook,
-      platform: "multiple", 
-      date: finalDate,
-      time: finalTime,
-      dayNum: dayName,
-      status: "Scheduled"
-    };
+      if (error) throw error;
 
-    const updatedSchedule = [...scheduledPosts, newPost].sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-    setScheduledPosts(updatedSchedule);
-    setPendingProject(null); 
-    sessionStorage.removeItem('lastBuddyProject'); 
-    triggerToast("✨ Project Published to Grid!");
+      // 3. Update Local UI State (Original Calendar Logic)
+      const dateObj = new Date(finalDate + "T00:00:00");
+      const dayName = dateObj.toLocaleString('en-US', { weekday: 'short' });
+
+      const newPost = {
+        id: Date.now(),
+        title: pendingProject.hook,
+        platform: "multiple", 
+        date: finalDate,
+        time: finalTime,
+        dayNum: dayName,
+        status: "Scheduled"
+      };
+
+      const updatedSchedule = [...scheduledPosts, newPost].sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      setScheduledPosts(updatedSchedule);
+      setPendingProject(null); 
+      sessionStorage.removeItem('lastBuddyProject'); 
+      triggerToast("✨ Scheduled & Synced to Database!");
+
+    } catch (err) {
+      console.error("Database Error:", err);
+      triggerToast("❌ Database Sync Failed!");
+    }
   };
 
   const getPostsForDay = (day) => {
@@ -134,7 +152,7 @@ export default function Schedule() {
             onClick={() => navigate('/success')}
             className="bg-black dark:bg-white text-white dark:text-black px-10 py-4 rounded-full font-black text-sm flex items-center gap-2 hover:scale-105 transition-all shadow-2xl shrink-0"
         >
-            Launch Workspace <ArrowRight size={18} />
+            Publish & Finish 🎉 <ArrowRight size={18} />
         </button>
       </header>
 
@@ -208,17 +226,17 @@ export default function Schedule() {
                         <p className="text-xs text-gray-400 dark:text-gray-600 mb-8 max-w-[200px] leading-relaxed">Your creative queue is currently empty. Generate a new strategy to begin.</p>
                         
                         <button 
-                            onClick={loadDemoProject}
+                            onClick={() => navigate('/app')}
                             className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 rounded-xl text-xs font-black text-gray-600 dark:text-gray-300 transition-all shadow-sm active:scale-95"
                         >
-                            <Wand2 size={14} /> Use Demo Data
+                            <ArrowLeft size={14} /> Back to Phase 1
                         </button>
                     </motion.div>
                 )}
             </AnimatePresence>
         </div>
 
-        {/* RIGHT COLUMN: The Dynamic Visual Grid Calendar */}
+        {/* RIGHT COLUMN: Calendar Grid */}
         <div className="col-span-1 xl:col-span-3 space-y-6">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 flex items-center justify-between ml-2">
                 <span>{monthName} {currentYear} GRID</span>
@@ -268,7 +286,6 @@ export default function Schedule() {
                                                 {post.time} - {post.title}
                                             </motion.div>
                                             
-                                            {/* THE FLOATING HOVER TOOLTIP */}
                                             <div className="absolute bottom-[calc(100%+12px)] left-1/2 -translate-x-1/2 w-60 p-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs rounded-[24px] shadow-[0_32px_64px_rgba(0,0,0,0.4)] opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 pointer-events-none transition-all duration-300 z-[999] origin-bottom border border-white/10 dark:border-black/5">
                                                 <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 dark:bg-white rotate-45 border-b border-r border-white/10 dark:border-black/5"></div>
                                                 <div className="flex items-center gap-2 mb-3">

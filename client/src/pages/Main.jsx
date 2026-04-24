@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, Music, Video, Camera } from 'lucide-react';
 
 export default function Main() {
   const navigate = useNavigate();
   const [links, setLinks] = useState(['', '', '']);
+  
+  // NEW: Platform Selection State
+  const [selectedPlatforms, setSelectedPlatforms] = useState(['TikTok']); // Default to TikTok
   
   const [contentType, setContentType] = useState('Auto');
   const [subject, setSubject] = useState('');
@@ -13,10 +16,21 @@ export default function Main() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [loadingText, setLoadingText] = useState("Buddy is Learning...");
 
-  // Clear memory when landing on this page so you start fresh!
   useEffect(() => {
     sessionStorage.removeItem('lastBuddyProject');
   }, []);
+
+  const availablePlatforms = [
+    { id: 'TikTok', name: 'TikTok', icon: <Music size={20} />, color: 'bg-black text-white dark:bg-white dark:text-black' },
+    { id: 'YouTube Shorts', name: 'YouTube Shorts', icon: <Video size={20} />, color: 'bg-red-500 text-white' },
+    { id: 'Instagram Reels', name: 'Instagram Reels', icon: <Camera size={20} />, color: 'bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-500 text-white' }
+  ];
+
+  const togglePlatform = (id) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
+  };
 
   const loadingMessages = [
     "Analyzing video pacing...",
@@ -26,7 +40,10 @@ export default function Main() {
     "Finalizing UI assets..."
   ];
 
-  const isFormValid = links.some(link => link.trim() !== '') && (contentType === 'Auto' || subject.trim() !== '');
+  // Must have at least 1 link, 1 goal, AND 1 platform selected
+  const isFormValid = links.some(link => link.trim() !== '') && 
+                      (contentType === 'Auto' || subject.trim() !== '') &&
+                      selectedPlatforms.length > 0;
 
   useEffect(() => {
     let interval;
@@ -57,9 +74,6 @@ export default function Main() {
       ? "Analyze my style and suggest the best viral topic for my next video." 
       : `Create an engaging ${contentType} video specifically about: ${subject}`;
 
-    // ==========================================
-    // REAL BACKEND FETCH TO /api/strategize
-    // ==========================================
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/strategize`, {
         method: 'POST',
@@ -78,9 +92,9 @@ export default function Main() {
 
       const data = await response.json();
       
-      // Save real data from Java to storage
       sessionStorage.setItem('lastBuddyProject', JSON.stringify(data));
-      navigate('/suggestions', { state: { strategyData: data } });
+      // 🔥 WE NOW PASS THE SELECTED PLATFORMS TO THE NEXT PAGE
+      navigate('/suggestions', { state: { strategyData: data, platforms: selectedPlatforms } });
       
     } catch (error) {
       console.error("❌ Backend Connection Failed:", error);
@@ -141,6 +155,30 @@ const handleSaveProject = async (projectData) => {
             />
           </div>
         ))}
+      </div>
+
+      {/* NEW: PLATFORM SELECTION */}
+      <div className="mb-12">
+        <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-6 text-center">Where are you publishing?</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {availablePlatforms.map((platform) => {
+            const isSelected = selectedPlatforms.includes(platform.id);
+            return (
+              <button
+                key={platform.id}
+                onClick={() => togglePlatform(platform.id)}
+                className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all duration-300 ${
+                  isSelected 
+                  ? `border-transparent shadow-lg scale-105 ${platform.color}` 
+                  : 'border-white dark:border-white/10 bg-white/50 dark:bg-white/[0.02] text-gray-500 hover:bg-white dark:hover:bg-white/[0.05]'
+                }`}
+              >
+                <div className={`mb-3 ${isSelected ? 'animate-bounce' : ''}`}>{platform.icon}</div>
+                <span className="font-bold text-sm">{platform.name}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* NEW INTERACTIVE PROMPT AREA */}
