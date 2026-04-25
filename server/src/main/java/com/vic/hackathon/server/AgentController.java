@@ -25,23 +25,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = {"http://localhost:5173","https://122ctrl-save-us.vercel.app"}) 
+@CrossOrigin(origins = "*") // Use "*" temporarily for the hackathon to avoid any CORS blocks!
 public class AgentController {
 
-    @Value("${zai.api.key}")
+    @Value("${zai.api.key:}") // Added colon to prevent crash
     private String zaiApiKey;
     
+    @Value("${zai.api.url:https://api.ilmu.ai/anthropic/v1/messages}") // Added colon + default
+    private String zaiApiUrl;
+
+    @Value("${supabase.url:}") // Added colon to prevent crash
+    private String supabaseUrl;
+
+    @Value("${supabase.key:}") // Added colon to prevent crash
+    private String supabaseKey;
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${zai.api.url}")
-    private String zaiApiUrl;
-
-    @Value("${supabase.url}")
-    private String supabaseUrl;
-
-    @Value("${supabase.key}")  
-    private String supabaseKey;
 
     // ==========================================
     // PHASE 01: STRATEGIZE 
