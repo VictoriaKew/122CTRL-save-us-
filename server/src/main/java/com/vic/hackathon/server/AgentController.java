@@ -202,7 +202,7 @@ public class AgentController {
         Map<String, Object> body = new HashMap<>();
         body.put("model", "ilmu-glm-5.1");
         body.put("messages", List.of(Map.of("role", "user", "content", prompt)));
-        body.put("max_tokens", 2048);
+        body.put("max_tokens", 1000);
         body.put("temperature", 0.3); 
 
         try {
