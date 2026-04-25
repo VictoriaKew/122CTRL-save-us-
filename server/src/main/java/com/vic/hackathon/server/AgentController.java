@@ -25,16 +25,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173") 
+@CrossOrigin(origins = {"http://localhost:5173","https://122ctrl-save-us.vercel.app"}) 
 public class AgentController {
 
-   @Value("${zai.api.key:}")
+    @Value("${zai.api.key}")
     private String zaiApiKey;
-
+    
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-   @Value("${zai.api.url:https://api.ilmu.ai/anthropic/v1/messages}")
+    @Value("${zai.api.url}")
     private String zaiApiUrl;
 
     @Value("${supabase.url}")
