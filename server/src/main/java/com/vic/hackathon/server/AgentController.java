@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -294,24 +293,3 @@ public class AgentController {
     }
 }
 
-// ==========================================
-// DATA MODELS 
-// ==========================================
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-class ProjectResponse {
-    public String hook;
-    public String sonicDna;
-    public String script;
-    public List<StoryboardRow> storyboard = new ArrayList<>();
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class StoryboardRow {
-        public int scene;
-        public String visual;
-        public String characterAction;
-        public String wayOfShooting;
-        public String wayOfEditing;
-        public String dialogue;
-    }
-}
