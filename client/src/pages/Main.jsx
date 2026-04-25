@@ -5,14 +5,22 @@ import { Sparkles, Loader2, Music, Video, Camera } from 'lucide-react';
 
 export default function Main() {
   const navigate = useNavigate();
-  const [links, setLinks] = useState(['', '', '']);
+// --- Replace your old states with these ---
+  const [links, setLinks] = useState(() => JSON.parse(sessionStorage.getItem('draftLinks')) || ['', '', '']);
+  const [selectedPlatforms, setSelectedPlatforms] = useState(() => JSON.parse(sessionStorage.getItem('draftPlatforms')) || ['TikTok']);
+  const [contentType, setContentType] = useState(() => sessionStorage.getItem('draftType') || 'Auto');
+  const [subject, setSubject] = useState(() => sessionStorage.getItem('draftSubject') || '');
   
-  // Platform Selection State
-  const [selectedPlatforms, setSelectedPlatforms] = useState(['TikTok']); // Default to TikTok
-  
-  const [contentType, setContentType] = useState('Auto');
-  const [subject, setSubject] = useState('');
-  
+  // --- REMOVE the useEffect that clears 'lastBuddyProject' ---
+  // (Delete the useEffect that had sessionStorage.removeItem in it!)
+
+// --- ADD this new useEffect to auto-save inputs ---
+  useEffect(() => {
+    sessionStorage.setItem('draftLinks', JSON.stringify(links));
+    sessionStorage.setItem('draftPlatforms', JSON.stringify(selectedPlatforms));
+    sessionStorage.setItem('draftType', contentType);
+    sessionStorage.setItem('draftSubject', subject);
+  }, [links, selectedPlatforms, contentType, subject]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [loadingText, setLoadingText] = useState("Buddy is Learning...");
 

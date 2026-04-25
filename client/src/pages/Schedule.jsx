@@ -89,12 +89,19 @@ export default function Schedule() {
       dayNum: dayName,
       status: "Scheduled"
     };
-
+    
     const updatedSchedule = [...scheduledPosts, newPost].sort((a, b) => new Date(a.date) - new Date(b.date));
     
     setScheduledPosts(updatedSchedule);
     setPendingProject(null); 
+    
+    // WIPING THE ENTIRE WORKSPACE ONLY UPON SUCCESS
     sessionStorage.removeItem('lastBuddyProject'); 
+    sessionStorage.removeItem('draftLinks');
+    sessionStorage.removeItem('draftPlatforms');
+    sessionStorage.removeItem('draftType');
+    sessionStorage.removeItem('draftSubject');
+    
     triggerToast("✨ Project Published to Grid!");
   };
 

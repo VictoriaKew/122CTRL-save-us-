@@ -11,7 +11,10 @@ export default function Suggestions() {
   const passedData = location.state?.strategyData || savedMemory;
 
   // Pull the chosen platforms from the previous page
-  const selectedPlatforms = location.state?.platforms || ['TikTok', 'Instagram Reels'];
+ // Pull the chosen platforms from the previous page OR from our saved draft memory
+  const selectedPlatforms = location.state?.platforms 
+      || JSON.parse(sessionStorage.getItem('draftPlatforms')) 
+      || ['TikTok', 'Instagram Reels'];
 
   const [projectData, setProjectData] = useState(passedData || {
     hook: "No project loaded. Go back and generate one! ⚠️",
