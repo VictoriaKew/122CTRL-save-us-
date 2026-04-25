@@ -26,7 +26,7 @@ function DashboardLayout() {
   const [history, setHistory] = useState([]);
   const [scheduledPosts, setScheduledPosts] = useState([]);
 
-  // --- NEW: NOTIFICATION STATES ---
+  // --- NOTIFICATION STATES ---
   const [notifications, setNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
 
@@ -53,7 +53,7 @@ function DashboardLayout() {
     fetchHistory();
   }, []);
 
-  // --- NEW: FETCH NOTIFICATIONS (Scheduled posts due now) ---
+  // --- FETCH NOTIFICATIONS ---
   useEffect(() => {
     const fetchNotifications = async () => {
       const now = new Date().toISOString();
@@ -61,7 +61,7 @@ function DashboardLayout() {
         .from('scheduled_posts')
         .select('*, projects(hook)')
         .eq('status', 'pending')
-        .lte('publish_time', now); // Gets posts whose time has already passed or is exactly now
+        .lte('publish_time', now); 
 
       if (!error) {
         setNotifications(data || []);
@@ -69,7 +69,7 @@ function DashboardLayout() {
     };
 
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000); // Check every minute
+    const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
 

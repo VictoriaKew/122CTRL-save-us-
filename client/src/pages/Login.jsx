@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Login() {
   const navigate = useNavigate();
   return (
-    // ADDED: dark:bg-[#000000] and dark:text-[#f5f5f7]
+    // dark:bg-[#000000] and dark:text-[#f5f5f7]
     <div className="h-screen w-full relative overflow-hidden flex items-center justify-center p-6 font-sans text-[#1d1d1f] dark:text-[#f5f5f7] bg-[#f8f9fb] dark:bg-[#000000] transition-colors duration-500">
       
       {/* THE GLOWING ORB (Updated to match App.jsx!) */}

@@ -2,10 +2,8 @@ package com.vic.hackathon.server;
 import java.util.List;
 
 public class ComplianceResponse {
-    // 🔥 SCORE COMPLETELY REMOVED
     public List<ComplianceIssue> issues;
 
-    // REQUIRED: Empty constructor
     public ComplianceResponse() {} 
 
     public static class ComplianceIssue {
@@ -14,7 +12,6 @@ public class ComplianceResponse {
         public String title;
         public String desc;
 
-        // REQUIRED: Empty constructor
         public ComplianceIssue() {}
 
         public ComplianceIssue(String type, String platform, String title, String desc) {

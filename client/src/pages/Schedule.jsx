@@ -94,7 +94,6 @@ export default function Schedule() {
     
     setScheduledPosts(updatedSchedule);
     setPendingProject(null); 
-    // Clear it so they can't schedule it twice!
     sessionStorage.removeItem('lastBuddyProject'); 
     triggerToast("✨ Project Published to Grid!");
   };

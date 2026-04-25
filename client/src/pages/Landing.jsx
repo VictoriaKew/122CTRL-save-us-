@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logo from '../assets/buddy.png'; // <-- IMPORT LOGO HERE
+import logo from '../assets/buddy.png'; 
 
 export default function Landing() {
   const navigate = useNavigate();

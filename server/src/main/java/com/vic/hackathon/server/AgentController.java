@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173") // Adjust if your React port changes
+@CrossOrigin(origins = "http://localhost:5173") 
 public class AgentController {
 
     @Value("${zai.api.key}")
@@ -45,7 +45,7 @@ public class AgentController {
     private String supabaseKey;
 
     // ==========================================
-    // PHASE 01: STRATEGIZE (Upgraded for Pure Visuals)
+    // PHASE 01: STRATEGIZE 
     // ==========================================
     @PostMapping(value = "/strategize", produces = "application/json")
     public ResponseEntity<?> generateSpecificStrategy(@RequestBody Map<String, Object> requestPayload) {
@@ -62,7 +62,7 @@ public class AgentController {
 
         System.out.println("✅ Phase 01 Request: " + userTopic);
 
-        // 🔥 CRITICAL FIX PROMPT: Added strict rules to separate visual and audio data
+
         String systemPrompt = "Act as a Tier-1 Viral Content Strategist for Gen-Z TikTok & Shorts. " +
             "Analyze the vibe of these reference links: " + cleanLinks.toString() + " and create a highly engaging video strategy for the Topic: '" + userTopic + "'.\n\n" +
             "The content MUST be fast-paced, relatable, and highly engaging. Do not be generic.\n\n" +
@@ -93,7 +93,53 @@ public class AgentController {
     }
 
     // ==========================================
-    // PHASE 03: COMPLIANCE (Isolated Script & No Score)
+    // PHASE 02: Persistence Layer 
+    // ==========================================
+    private void saveToSupabase(ProjectResponse project) {
+    String supabaseUrl = "https://fotkonztoknosscvjnbc.supabase.co";
+    String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvdGtvbnp0b2tub3NzY3ZqbmJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NzA5ODUsImV4cCI6MjA5MjQ0Njk4NX0.xt9qgixJjhV6ItrQTZuH_N-wbplGDplYIfg3lEexPt4"; // Use Service Role Key to bypass RLS for backend
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("apikey", supabaseKey);
+    headers.set("Authorization", "Bearer " + supabaseKey);
+    headers.set("Content-Type", "application/json");
+    headers.set("Prefer", "return=representation"); // Returns the created ID
+
+    try {
+
+        Map<String, Object> projectMap = Map.of(
+        "hook", project.hook,
+        "sonic_dna", project.sonicDna,
+        "script", project.script
+    );
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(projectMap, headers);
+        ResponseEntity<JsonNode> response = restTemplate.postForEntity(supabaseUrl, entity, JsonNode.class);
+        
+        String projectId = response.getBody().get(0).get("id").asText();
+
+        String scenesUrl = "https://your-project-ref.supabase.co/rest/v1/storyboard_scenes";
+        List<Map<String, Object>> scenesBatch = project.storyboard.stream().map(row -> {
+            Map<String, Object> scene = new HashMap<>();
+            scene.put("project_id", projectId);
+            scene.put("scene_number", row.scene);
+            scene.put("visual", row.visual);
+            scene.put("character_action", row.characterAction);
+            scene.put("shooting_style", row.wayOfShooting);
+            scene.put("editing_style", row.wayOfEditing);
+            scene.put("dialogue", row.dialogue);
+            return scene;
+        }).collect(Collectors.toList());
+
+        restTemplate.postForEntity(scenesUrl, new HttpEntity<>(scenesBatch, headers), String.class);
+        System.out.println("✅ Data successfully synced to Supabase!");
+
+    } catch (Exception e) {
+        System.err.println("⚠️ Supabase Sync Failed: " + e.getMessage());
+    }
+    }
+
+    // ==========================================
+    // PHASE 03: COMPLIANCE 
     // ==========================================
     @PostMapping(value = "/compliance", produces = "application/json")
     public ResponseEntity<?> checkCompliance(@RequestBody Map<String, Object> request) {
@@ -120,54 +166,8 @@ public class AgentController {
         return callZaiApi(systemPrompt, "compliance");
     }
 
-    private void saveToSupabase(ProjectResponse project) {
-    String supabaseUrl = "https://fotkonztoknosscvjnbc.supabase.co";
-    String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvdGtvbnp0b2tub3NzY3ZqbmJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NzA5ODUsImV4cCI6MjA5MjQ0Njk4NX0.xt9qgixJjhV6ItrQTZuH_N-wbplGDplYIfg3lEexPt4"; // Use Service Role Key to bypass RLS for backend
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("apikey", supabaseKey);
-    headers.set("Authorization", "Bearer " + supabaseKey);
-    headers.set("Content-Type", "application/json");
-    headers.set("Prefer", "return=representation"); // Returns the created ID
-
-    try {
-
-        // 1. Insert Project Header
-        Map<String, Object> projectMap = Map.of(
-        "hook", project.hook,
-        "sonic_dna", project.sonicDna,
-        "script", project.script
-    );
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(projectMap, headers);
-        ResponseEntity<JsonNode> response = restTemplate.postForEntity(supabaseUrl, entity, JsonNode.class);
-        
-        // 2. Get the ID of the project we just created
-        String projectId = response.getBody().get(0).get("id").asText();
-
-        // 3. Insert all Storyboard Scenes
-        String scenesUrl = "https://your-project-ref.supabase.co/rest/v1/storyboard_scenes";
-        List<Map<String, Object>> scenesBatch = project.storyboard.stream().map(row -> {
-            Map<String, Object> scene = new HashMap<>();
-            scene.put("project_id", projectId);
-            scene.put("scene_number", row.scene);
-            scene.put("visual", row.visual);
-            scene.put("character_action", row.characterAction);
-            scene.put("shooting_style", row.wayOfShooting);
-            scene.put("editing_style", row.wayOfEditing);
-            scene.put("dialogue", row.dialogue);
-            return scene;
-        }).collect(Collectors.toList());
-
-        restTemplate.postForEntity(scenesUrl, new HttpEntity<>(scenesBatch, headers), String.class);
-        System.out.println("✅ Data successfully synced to Supabase!");
-
-    } catch (Exception e) {
-        System.err.println("⚠️ Supabase Sync Failed: " + e.getMessage());
-    }
-    }
-
     // ==========================================
-    // PHASE 04: CO-PILOT (Refine)
+    // PHASE 04: CO-PILOT 
     // ==========================================
     @PostMapping(value = "/refine", produces = "application/json")
     public ResponseEntity<?> refineProject(@RequestBody Map<String, Object> request) {
@@ -203,7 +203,6 @@ public class AgentController {
         body.put("model", "ilmu-glm-5.1");
         body.put("messages", List.of(Map.of("role", "user", "content", prompt)));
         body.put("max_tokens", 2048);
-        // Turn temperature down slightly to make JSON more stable
         body.put("temperature", 0.3); 
 
         try {
@@ -214,7 +213,6 @@ public class AgentController {
             JsonNode rootNode = objectMapper.readTree(responseBody);
             String text = rootNode.path("content").get(0).path("text").asText().trim();
             
-            // JSON Extraction
             int firstBrace = text.indexOf("{");
             int lastBrace = text.lastIndexOf("}");
             if (firstBrace == -1 || lastBrace == -1) throw new Exception("AI failed to send JSON data");
@@ -233,7 +231,6 @@ public class AgentController {
                 System.err.println("Server Said: " + ((HttpStatusCodeException)e).getResponseBodyAsString());
             }
             
-            // 🔥 HACKATHON SAFETY NET: If the API times out (504) or fails, return mock data so the UI doesn't break!
             System.out.println("⚠️ ILMU API failed. Triggering Emergency Demo Fallback Data.");
             
             if (type.equals("compliance")) {
@@ -242,7 +239,9 @@ public class AgentController {
                 return getMockProjectResponse("Viral Hackathon Strategy 🚀");
             }
         }
-    } // <-- FIXED: Added the missing closing brace here!
+    } 
+
+    // Safety net for when ILMU API fails   
         private ResponseEntity<ProjectResponse> getMockProjectResponse(String title) {
         ProjectResponse mock = new ProjectResponse();
         mock.hook = "The Truth About Tech Event Planning 🤯";
@@ -296,7 +295,7 @@ public class AgentController {
 }
 
 // ==========================================
-// DATA MODELS (Upgraded to match Frontend)
+// DATA MODELS 
 // ==========================================
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -316,4 +315,3 @@ class ProjectResponse {
         public String dialogue;
     }
 }
-// 🔥 ComplianceResponse class removed from here to prevent Duplicate Class errors!
