@@ -16,3 +16,6 @@ client/.eslintcache
 # Miscellaneous
 .DS_Store
 .vscode/
+
+# THE MOST IMPORTANT LINE (Updated with 'server/')
+server/src/main/resources/application.properties
