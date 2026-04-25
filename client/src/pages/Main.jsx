@@ -7,7 +7,7 @@ export default function Main() {
   const navigate = useNavigate();
   const [links, setLinks] = useState(['', '', '']);
   
-  // NEW: Platform Selection State
+  // Platform Selection State
   const [selectedPlatforms, setSelectedPlatforms] = useState(['TikTok']); // Default to TikTok
   
   const [contentType, setContentType] = useState('Auto');
@@ -84,7 +84,6 @@ export default function Main() {
       const data = await response.json();
       
       sessionStorage.setItem('lastBuddyProject', JSON.stringify(data));
-      // 🔥 WE NOW PASS THE SELECTED PLATFORMS TO THE NEXT PAGE
       navigate('/suggestions', { state: { strategyData: data, platforms: selectedPlatforms } });
       
     } catch (error) {
@@ -129,7 +128,7 @@ export default function Main() {
         ))}
       </div>
 
-      {/* NEW: PLATFORM SELECTION */}
+      {/*PLATFORM SELECTION */}
       <div className="mb-12">
         <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-6 text-center">Where are you publishing?</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -153,7 +152,7 @@ export default function Main() {
         </div>
       </div>
 
-      {/* NEW INTERACTIVE PROMPT AREA */}
+      {/*INTERACTIVE PROMPT AREA */}
       <div className="bg-white/60 dark:bg-white/[0.03] backdrop-blur-2xl border-2 border-dashed border-white/80 dark:border-white/10 rounded-[40px] p-8 md:p-10 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-all group shadow-xl">
         <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-6">What is the goal for this video?</h3>
 

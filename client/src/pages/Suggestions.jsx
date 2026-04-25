@@ -21,7 +21,7 @@ export default function Suggestions() {
   });
 
   // --- COMPLIANCE SCANNER STATES ---
-  const [scanState, setScanState] = useState('idle'); // 'idle' | 'scanning' | 'results'
+  const [scanState, setScanState] = useState('idle'); 
   const [scanResults, setScanResults] = useState([]);
 
   useEffect(() => {
@@ -217,7 +217,7 @@ export default function Suggestions() {
         </div>
       </div>
 
-      {/* --- INTEGRATED COMPLIANCE SCANNER --- */}
+      {/* --- COMPLIANCE SCANNER --- */}
       <h2 className="text-sm font-bold tracking-[0.2em] uppercase text-gray-400 dark:text-gray-500 mb-6 ml-2">Platform Safety Check</h2>
       
       <AnimatePresence mode="wait">
@@ -267,7 +267,7 @@ export default function Suggestions() {
                 </div>
             </div>
             
-            {/* 🔥 SCHEDULE BUTTON APPEARS ONLY AFTER SCANNING IS COMPLETE */}
+            {/* SCHEDULE BUTTON APPEARS ONLY AFTER SCANNING IS COMPLETE */}
             <div className="mt-10 flex justify-center w-full pt-8 border-t border-gray-200 dark:border-white/10">
                 <button 
                     onClick={() => navigate('/schedule')} 

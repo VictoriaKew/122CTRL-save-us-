@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-/* THIS IS THE MAGIC FIX FOR TAILWIND V4! */
-/* It forces Tailwind to use our manual class toggle instead of the OS system preference */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -16,11 +14,9 @@ html, body, #root {
   background-color: transparent !important;
   margin: 0;
   padding: 0;
-  /* Smooth transition for theme switching */
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Base text colors for Light/Dark mode */
 body {
   @apply antialiased overflow-x-hidden text-[#1d1d1f];
 }
@@ -29,12 +25,10 @@ body {
   @apply text-[#f5f5f7]; /* Apple's off-white for dark mode text */
 }
 
-/* THE MAGIC GLASS CLASSES */
 .glass-panel {
   @apply bg-white/70 backdrop-blur-2xl border border-white/40 shadow-xl transition-all duration-300;
 }
 
-/* Dark Mode Glass */
 .dark .glass-panel {
   @apply bg-black/40 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)];
 }
@@ -44,7 +38,6 @@ body {
   pointer-events: none;
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
