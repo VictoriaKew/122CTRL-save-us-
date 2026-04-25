@@ -1,9 +1,40 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
 export default function Success() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fire confetti explosion when the page loads!
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#601ccb', '#3b82f6', '#10b981']
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#601ccb', '#3b82f6', '#10b981']
+      });
+
+      if (Date.now() < animationEnd) {
+        requestAnimationFrame(frame);
+      }
+    };
+    frame();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-emerald-500 dark:text-emerald-400 mb-8 transition-colors">
@@ -27,7 +58,7 @@ export default function Success() {
 
       <button 
         onClick={() => navigate('/app')}
-        className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold hover:underline transition-colors"
+        className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold hover:underline transition-colors hover:scale-105"
       >
         <ArrowLeft size={18} /> Create Another Strategy
       </button>

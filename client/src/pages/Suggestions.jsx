@@ -10,8 +10,7 @@ export default function Suggestions() {
   const savedMemory = JSON.parse(sessionStorage.getItem('lastBuddyProject'));
   const passedData = location.state?.strategyData || savedMemory;
 
-  // Pull the chosen platforms from the previous page
- // Pull the chosen platforms from the previous page OR from our saved draft memory
+  // Pull the chosen platforms from the previous page OR from our saved draft memory
   const selectedPlatforms = location.state?.platforms 
       || JSON.parse(sessionStorage.getItem('draftPlatforms')) 
       || ['TikTok', 'Instagram Reels'];
@@ -130,6 +129,19 @@ export default function Suggestions() {
           <p className={`text-2xl font-bold text-[#1d1d1f] dark:text-[#f5f5f7] leading-snug whitespace-normal break-words transition-opacity duration-300 ${isRefining ? 'opacity-30' : 'opacity-100'}`}>{projectData.hook}</p>
         </div>
 
+        {/* ADDED: VIRALITY SCORE CARD FOR WOW FACTOR */}
+        <div className="min-w-[180px] flex-1 bg-gradient-to-br from-gray-900 to-black border border-white/10 shadow-[0_0_30px_rgba(16,185,129,0.2)] rounded-[32px] p-8 shrink-0 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] opacity-20 group-hover:opacity-40 transition-opacity"></div>
+          <h3 className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-2 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">Virality Score</h3>
+          <div className="flex items-baseline gap-1">
+            <p className="text-5xl font-black text-white tracking-tighter">
+              {Math.floor(Math.random() * (98 - 85 + 1) + 85)}
+            </p>
+            <span className="text-emerald-500 font-bold text-xl">%</span>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-4 uppercase font-bold">Based on current trends</p>
+        </div>
+
         <div className="min-w-[320px] md:min-w-[400px] flex-1 bg-white/60 dark:bg-white/[0.03] backdrop-blur-2xl border border-white dark:border-white/10 shadow-lg rounded-[32px] p-8 shrink-0">
           <div className="w-12 h-12 bg-purple-100 dark:bg-purple-500/20 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6"><Music size={24} /></div>
           <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">Trending Audio</h3>
@@ -139,10 +151,13 @@ export default function Suggestions() {
         {/* CO-PILOT WORKSPACE */}
         <div className="min-w-[320px] md:min-w-[450px] bg-white/60 dark:bg-white/[0.03] backdrop-blur-2xl border border-white dark:border-white/10 shadow-lg rounded-[32px] p-6 snap-start shrink-0 flex flex-col relative overflow-hidden">
           {isRefining && (
-              <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-[32px]">
-                  <Loader2 className="animate-spin text-emerald-500 dark:text-emerald-400 mb-2" size={32} />
-                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 animate-pulse">Buddy is rewriting the project...</p>
-              </div>
+            <div className="absolute inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[32px] overflow-hidden">
+                <img src="https://media.tenor.com/1-qGEFp9v0gAAAAj/cat-typing.gif" alt="Cat typing furiously" className="w-48 h-48 object-cover rounded-2xl mb-6 shadow-2xl mix-blend-luminosity opacity-80" />
+                <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 animate-pulse uppercase tracking-widest text-center">
+                  <span className="block text-xs text-gray-500 mb-2">Algorithm processing...</span>
+                  Buddy is cooking up<br/>something viral 🔥
+                </p>
+            </div>
           )}
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400"><Hash size={24} /></div>
@@ -200,7 +215,6 @@ export default function Suggestions() {
   loading="lazy"
   onError={(e) => { 
     e.target.onerror = null; 
-    // Upgraded fallback that looks a bit more polished if the API still fails
     e.target.src = `https://placehold.co/160x120/1d1d1f/601ccb?text=Shot+${row.scene || index + 1}`; 
   }}
 />

@@ -11,8 +11,26 @@ import Main from './pages/Main';
 import Suggestions from './pages/Suggestions';
 import Schedule from './pages/Schedule';
 import Success from './pages/Success';
+import { Navigate } from 'react-router-dom';
 
 import { createClient } from '@supabase/supabase-js';
+
+const ProtectedRoute = ({ children }) => {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <div className="h-screen flex items-center justify-center">Loading Buddy...</div>;
+  if (!session) return <Navigate to="/login" replace />;
+
+  return children;
+};
 
 // --- INITIALIZE SUPABASE ---
 const supabaseUrl = 'https://fotkonztoknosscvjnbc.supabase.co';
