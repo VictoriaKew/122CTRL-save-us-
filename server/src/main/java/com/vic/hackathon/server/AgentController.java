@@ -28,13 +28,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @CrossOrigin(origins = "http://localhost:5173") 
 public class AgentController {
 
-    @Value("${zai.api.key}")
+   @Value("${zai.api.key:}")
     private String zaiApiKey;
-    
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${zai.api.url}")
+   @Value("${zai.api.url:https://api.ilmu.ai/anthropic/v1/messages}")
     private String zaiApiUrl;
 
     @Value("${supabase.url}")
